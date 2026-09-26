@@ -1,96 +1,75 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { StyleSheet, SafeAreaView, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import {
+  LoginScreen,
+  HomeScreen,
+  ProfileScreen,
+  SettingsScreen,
+} from './frontend/src/screens';
 
-const App = () => {
-  const [nombreUsuario, setNombreUsuario] = useState('');
-  const [contraseña, setContraseña] = useState('');
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [currentScreen, setCurrentScreen] = useState('home');
 
-  const handleLogin = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombreUsuario, contraseña }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert('Éxito', 'Login correcto');
-      } else {
-        Alert.alert('Error', data.mensaje || 'Error al iniciar sesión');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se conectar al servidor');
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setCurrentScreen('home');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentScreen('home');
+  };
+
+  const navigateTo = (screenName) => {
+    setCurrentScreen(screenName);
+  };
+
+  // Si no está autenticado, mostramos la pantalla de inicio de sesión
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        <LoginScreen onLogin={handleLogin} />
+      </SafeAreaView>
+    );
+  }
+
+  // Renderizado condicional de pantallas según la navegación activa
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'profile':
+        return <ProfileScreen user={user} onBack={() => navigateTo('home')} />;
+      case 'settings':
+        return <SettingsScreen onBack={() => navigateTo('home')} />;
+      case 'home':
+      default:
+        return (
+          <HomeScreen
+            user={user}
+            onNavigate={navigateTo}
+            onLogout={handleLogout}
+          />
+        );
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Clínica Pediátrica</Text>
-      <Text style={styles.subtitle}>Iniciar Sesión</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Usuario"
-        value={nombreUsuario}
-        onChangeText={setNombreUsuario}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        secureTextEntry
-        value={contraseña}
-        onChangeText={setContraseña}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="auto" />
+      <View style={styles.content}>{renderScreen()}</View>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f8ff',
-    padding: 20,
+    backgroundColor: '#f5f7fa',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#34495e',
-    marginBottom: 30,
-  },
-  input: {
-    width: '80%',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#3498db',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    fontSize: 16,
-  },
-  button: {
-    width: '80%',
-    height: 50,
-    backgroundColor: '#3498db',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  content: {
+    flex: 1,
   },
 });
 
-export default App;
