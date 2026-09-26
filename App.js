@@ -6,6 +6,9 @@ import {
   HomeScreen,
   ProfileScreen,
   SettingsScreen,
+  AppointmentScreen,
+  MedicalHistoryScreen,
+  UserInterfaceScreen,
 } from './frontend/src/screens';
 
 export default function App() {
@@ -42,7 +45,18 @@ export default function App() {
       case 'profile':
         return <ProfileScreen user={user} onBack={() => navigateTo('home')} />;
       case 'settings':
-        return <SettingsScreen onBack={() => navigateTo('home')} />;
+        return (
+          <SettingsScreen
+            onBack={() => navigateTo('home')}
+            onLogout={handleLogout}
+          />
+        );
+      case 'appointments':
+        return <AppointmentScreen onBack={() => navigateTo('home')} />;
+      case 'medical-history':
+        return <MedicalHistoryScreen onBack={() => navigateTo('home')} />;
+      case 'user-interface':
+        return <UserInterfaceScreen onBack={() => navigateTo('home')} />;
       case 'home':
       default:
         return (
@@ -66,10 +80,9 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
   },
 });
-

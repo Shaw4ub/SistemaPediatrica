@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
 const HomeScreen = ({ onNavigate, onLogout }) => {
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Bienvenido a la Clínica Pediátrica</Text>
-      
+
       <TouchableOpacity
         style={styles.button}
         onPress={() => onNavigate && onNavigate('profile')}
@@ -25,52 +25,80 @@ const HomeScreen = ({ onNavigate, onLogout }) => {
       <View style={styles.spacer} />
 
       <TouchableOpacity
+        style={styles.button}
+        onPress={() => onNavigate && onNavigate('appointments')}
+      >
+        <Text style={styles.buttonText}>Citas</Text>
+      </TouchableOpacity>
+
+      <View style={styles.spacer} />
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => onNavigate && onNavigate('medical-history')}
+      >
+        <Text style={styles.buttonText}>Historial Médico</Text>
+      </TouchableOpacity>
+
+      <View style={styles.spacer} />
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => onNavigate && onNavigate('user-interface')}
+      >
+        <Text style={styles.buttonText}>Gestión de Pacientes</Text>
+      </TouchableOpacity>
+
+      <View style={styles.spacer} />
+
+      <TouchableOpacity
         style={[styles.button, styles.logoutButton]}
         onPress={() => onLogout && onLogout()}
       >
-        <Text style={[styles.buttonText, styles.logoutText]}>Cerrar Sesión</Text>
+        <Text style={styles.buttonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f7fa',
-    padding: 20,
+    backgroundColor: '#fff',
+    padding: 24,
   },
   title: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#2c3e50',
+    marginBottom: 35,
+    color: '#4a5568',
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#3498db',
-    paddingVertical: 14,
+    backgroundColor: '#b91c1c',
+    paddingVertical: 13,
     borderRadius: 8,
-    width: '75%',
+    width: '80%',
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#e74c3c',
-  },
-  logoutText: {
-    color: '#e74c3c',
+    backgroundColor: '#991b1b',
+    marginTop: 10,
   },
   spacer: {
-    height: 15,
+    height: 14,
   },
 });
 
