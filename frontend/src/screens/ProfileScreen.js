@@ -7,16 +7,21 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 
-const ProfileScreen = ({ user, onBack }) => {
-  const [profileType, setProfileType] = useState('admin'); // 'admin', 'usuario', 'paciente'
+const ProfileScreen = ({ route }) => {
+  const { user } = useAuth();
+  // Parámetro de navegación enviado desde HomeScreen.
+  const [profileType, setProfileType] = useState(
+    route.params?.perfilInicial || 'admin'
+  ); // 'admin', 'usuario', 'paciente'
 
   return (
     <View style={styles.screenWrapper}>
-      {onBack && (
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Volver</Text>
-        </TouchableOpacity>
+      {route.params?.desde && (
+        <Text style={styles.paramText}>
+          Accedido desde: {route.params.desde}
+        </Text>
       )}
 
       {/* Selector de tipo de perfil para visualizar los diferentes ejemplos de la guía */}
@@ -109,7 +114,7 @@ const ProfileScreen = ({ user, onBack }) => {
               <FontAwesome name="user-md" size={18} color="#0d9488" style={styles.icon} />
               <Text style={styles.infoText}>
                 <Text style={styles.infoLabel}>Nombre: </Text>
-                Dr. Lito López
+                {user?.nombreUsuario || 'Dr. Lito López'}
               </Text>
             </View>
 
@@ -125,7 +130,7 @@ const ProfileScreen = ({ user, onBack }) => {
               <Ionicons name="mail" size={18} color="#0d9488" style={styles.icon} />
               <Text style={styles.infoText}>
                 <Text style={styles.infoLabel}>Correo: </Text>
-                lito.lopez@clinica.com
+                {user?.email || 'lito.lopez@clinica.com'}
               </Text>
             </View>
           </View>
@@ -189,6 +194,14 @@ const ProfileScreen = ({ user, onBack }) => {
                 Padre
               </Text>
             </View>
+
+            <View style={styles.infoRow}>
+              <Ionicons name="person-circle" size={18} color="#e11d48" style={styles.icon} />
+              <Text style={styles.infoText}>
+                <Text style={styles.infoLabel}>Registrado por: </Text>
+                {user?.nombreUsuario || 'Invitado'}
+              </Text>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -202,19 +215,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     paddingTop: 15,
   },
-  backButton: {
-    marginHorizontal: 20,
+  paramText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
     marginBottom: 10,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 6,
-  },
-  backButtonText: {
-    fontSize: 14,
-    color: '#334155',
-    fontWeight: '600',
   },
   tabBar: {
     flexDirection: 'row',

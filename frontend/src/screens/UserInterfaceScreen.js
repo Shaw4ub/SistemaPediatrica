@@ -9,8 +9,10 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
-const UserInterfaceScreen = ({ onBack }) => {
+const UserInterfaceScreen = ({ route }) => {
+  const { user } = useAuth();
   const [inputText, setInputText] = useState('');
   const [patients, setPatients] = useState([
     { id: '1', name: 'Gilbert García' },
@@ -59,14 +61,17 @@ const UserInterfaceScreen = ({ onBack }) => {
 
   return (
     <View style={styles.screenWrapper}>
-      {onBack && (
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Volver</Text>
-        </TouchableOpacity>
-      )}
-
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Gestión de Pacientes</Text>
+
+        <Text style={styles.sessionText}>
+          Usuario en sesión: {user?.nombreUsuario}
+        </Text>
+        {route.params?.desde && (
+          <Text style={styles.paramText}>
+            Accedido desde: {route.params.desde}
+          </Text>
+        )}
 
         <TextInput
           style={styles.input}
@@ -132,19 +137,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  backButton: {
-    marginHorizontal: 20,
-    marginTop: 15,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 6,
-  },
-  backButtonText: {
-    fontSize: 14,
-    color: '#334155',
+  sessionText: {
+    fontSize: 13,
+    color: '#0369a1',
     fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  paramText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   container: {
     flexGrow: 1,

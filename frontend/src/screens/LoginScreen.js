@@ -8,8 +8,10 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 
-const LoginScreen = ({ onLogin }) => {
+const LoginScreen = () => {
+  const { login } = useAuth();
   const [nombreUsuario, setNombreUsuario] = useState('');
   const [contraseña, setContraseña] = useState('');
 
@@ -19,13 +21,12 @@ const LoginScreen = ({ onLogin }) => {
       return;
     }
 
-    if (onLogin) {
-      onLogin({
-        nombreUsuario: nombreUsuario.trim(),
-        rol: 'Administrador',
-        email: `${nombreUsuario.trim().toLowerCase()}@clinica.com`,
-      });
-    }
+    // Simulación de inicio de sesión: se guarda el usuario en el contexto global.
+    login({
+      nombreUsuario: nombreUsuario.trim(),
+      rol: 'Administrador',
+      email: `${nombreUsuario.trim().toLowerCase()}@clinica.com`,
+    });
   };
 
   return (
@@ -60,6 +61,10 @@ const LoginScreen = ({ onLogin }) => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Ingresar</Text>
       </TouchableOpacity>
+
+      <Text style={styles.hint}>
+        Demo: ingresa cualquier usuario y contraseña
+      </Text>
     </View>
   );
 };
@@ -114,6 +119,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: 'bold',
+  },
+  hint: {
+    marginTop: 18,
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
   },
 });
 

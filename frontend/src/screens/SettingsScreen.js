@@ -6,10 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 
-const SettingsScreen = ({ onBack, onLogout }) => {
+const SettingsScreen = ({ route }) => {
+  const { user, logout } = useAuth();
   const settingsOptions = [
     {
       id: '1',
@@ -59,11 +62,19 @@ const SettingsScreen = ({ onBack, onLogout }) => {
       icon: <Ionicons name="log-out" size={20} color="#fff" />,
       color: '#3498db',
       action: () => {
-        if (onLogout) {
-          onLogout();
-        } else if (onBack) {
-          onBack();
+        if (Platform.OS === 'web') {
+          logout();
+          return;
         }
+
+        Alert.alert('Cerrar sesión', '¿Deseas cerrar sesión?', [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Cerrar sesión',
+            style: 'destructive',
+            onPress: logout,
+          },
+        ]);
       },
     },
     {
@@ -77,14 +88,17 @@ const SettingsScreen = ({ onBack, onLogout }) => {
 
   return (
     <View style={styles.screenWrapper}>
-      {onBack && (
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Volver</Text>
-        </TouchableOpacity>
-      )}
-
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Configuración</Text>
+
+        <Text style={styles.sessionText}>
+          Usuario en sesión: {user?.nombreUsuario}
+        </Text>
+        {route.params?.desde && (
+          <Text style={styles.paramText}>
+            Accedido desde: {route.params.desde}
+          </Text>
+        )}
 
         <View style={styles.optionsContainer}>
           {settingsOptions.map((item) => (
@@ -112,23 +126,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: 15,
   },
-  backButton: {
-    marginHorizontal: 20,
-    marginBottom: 10,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 6,
-  },
-  backButtonText: {
-    fontSize: 14,
-    color: '#334155',
+  sessionText: {
+    fontSize: 13,
+    color: '#0369a1',
     fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  paramText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: 15,
   },
   container: {
     paddingHorizontal: 25,
     paddingBottom: 30,
+    paddingTop: 20,
     alignItems: 'center',
   },
   title: {

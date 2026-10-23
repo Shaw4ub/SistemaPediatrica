@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
-const MedicalHistoryScreen = ({ onBack }) => {
+const MedicalHistoryScreen = ({ route }) => {
+  const { user } = useAuth();
   const historyData = [
     {
       id: '1',
@@ -28,13 +30,16 @@ const MedicalHistoryScreen = ({ onBack }) => {
 
   return (
     <View style={styles.container}>
-      {onBack && (
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Volver</Text>
-        </TouchableOpacity>
-      )}
-
       <Text style={styles.title}>Historia Clínica</Text>
+
+      <Text style={styles.sessionText}>
+        Usuario en sesión: {user?.nombreUsuario}
+      </Text>
+      {route.params?.desde && (
+        <Text style={styles.paramText}>
+          Accedido desde: {route.params.desde}
+        </Text>
+      )}
 
       <FlatList
         data={historyData}
@@ -69,18 +74,18 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 30,
   },
-  backButton: {
-    marginBottom: 15,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 6,
-  },
-  backButtonText: {
-    fontSize: 14,
-    color: '#334155',
+  sessionText: {
+    fontSize: 13,
+    color: '#0369a1',
     fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  paramText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   title: {
     fontSize: 20,
