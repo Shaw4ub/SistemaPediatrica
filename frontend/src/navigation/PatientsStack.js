@@ -5,6 +5,7 @@ import {
   UserInterfaceScreen,
   PatientDetailScreen,
   PatientFormScreen,
+  SqliteViewerScreen,
 } from '../screens';
 import DrawerMenuButton from '../components/DrawerMenuButton';
 import { useTheme } from '../context/ThemeContext';
@@ -42,6 +43,11 @@ const PatientsStack = () => {
           presentation: 'modal',
           animation: 'slide_from_bottom',
         })}
+      />
+      <Stack.Screen
+        name="DatabaseViewer"
+        component={SqliteViewerScreen}
+        options={{ title: 'Base de datos SQLite' }}
       />
     </Stack.Navigator>
   );

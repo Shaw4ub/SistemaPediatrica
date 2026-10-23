@@ -87,9 +87,17 @@ const PatientDetailScreen = ({ navigation, route }) => {
     confirmAction(
       'Eliminar paciente',
       'Se eliminarán también sus citas e historial. Esta acción no se puede deshacer.',
-      () => {
-        deletePatient(patient.id);
-        navigation.goBack();
+      async () => {
+        try {
+          await deletePatient(patient.id);
+          navigation.goBack();
+        } catch (error) {
+          console.warn('[patients] No se pudo eliminar el paciente.', error);
+          Alert.alert(
+            'No se pudo eliminar',
+            'Ocurrió un error al borrar el registro en la base de datos.'
+          );
+        }
       }
     );
   };
@@ -188,6 +196,15 @@ const PatientDetailScreen = ({ navigation, route }) => {
           label="Edad"
           value={`${patient.edad} años`}
         />
+        <InfoRow
+          icon="gift-outline"
+          label="Fecha de nacimiento"
+          value={
+            patient.fechaNacimiento
+              ? formatDate(patient.fechaNacimiento)
+              : 'No registrada'
+          }
+        />
         <InfoRow icon="male-female-outline" label="Sexo" value={patient.sexo} />
         <InfoRow
           icon="people-outline"
@@ -197,13 +214,29 @@ const PatientDetailScreen = ({ navigation, route }) => {
         <InfoRow
           icon="call-outline"
           label="Teléfono de contacto"
-          value={patient.telefono}
+          value={patient.telefono || 'No registrado'}
+        />
+        <InfoRow
+          icon="mail-outline"
+          label="Correo electrónico"
+          value={patient.correo || 'No registrado'}
         />
         <InfoRow
           icon="home-outline"
           label="Dirección"
-          value={patient.direccion}
+          value={patient.direccion || 'No registrada'}
         />
+        {patient.contactoEmergencia ? (
+          <InfoRow
+            icon="medkit-outline"
+            label="Contacto de emergencia"
+            value={`${patient.contactoEmergencia}${
+              patient.telefonoEmergencia
+                ? ` · ${patient.telefonoEmergencia}`
+                : ''
+            }`}
+          />
+        ) : null}
         <InfoRow
           icon="alert-circle-outline"
           label="Alergias"

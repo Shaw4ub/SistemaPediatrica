@@ -85,6 +85,13 @@ const AppointmentFormScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appointmentId, patientId]);
 
+  // Selecciona el primer paciente cuando la base termina de cargar.
+  useEffect(() => {
+    if (!selectedPatientId && patients.length > 0) {
+      setSelectedPatientId(patients[0].id);
+    }
+  }, [patients, selectedPatientId]);
+
   const handleSubmit = () => {
     const patient = patients.find((item) => item.id === selectedPatientId);
 

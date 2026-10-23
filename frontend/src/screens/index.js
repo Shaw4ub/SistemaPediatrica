@@ -12,6 +12,7 @@ export { default as MedicalRecordFormScreen } from './MedicalRecordFormScreen';
 export { default as UserInterfaceScreen } from './UserInterfaceScreen';
 export { default as PatientDetailScreen } from './PatientDetailScreen';
 export { default as PatientFormScreen } from './PatientFormScreen';
+export { default as SqliteViewerScreen } from './SqliteViewerScreen';
 export { default as NotificationsScreen } from './NotificationsScreen';
 export { default as AboutScreen } from './AboutScreen';
 export { default as HelpScreen } from './HelpScreen';

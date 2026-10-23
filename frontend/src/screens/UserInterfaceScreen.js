@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -16,13 +17,25 @@ import EmptyState from '../components/EmptyState';
 import { radius, shadows, spacing } from '../theme';
 
 const UserInterfaceScreen = ({ navigation }) => {
-  const { patients } = useClinic();
+  const {
+    patients,
+    isLoadingPatients,
+    patientsError,
+    refreshPatients,
+  } = useClinic();
   const { colors, isDark } = useTheme();
   const styles = useMemo(
     () => createStyles(colors, isDark),
     [colors, isDark]
   );
   const [query, setQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshPatients();
+    setRefreshing(false);
+  };
 
   const filteredPatients = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -95,6 +108,8 @@ const UserInterfaceScreen = ({ navigation }) => {
         extraData={isDark}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         ListHeaderComponent={
           <View>
             <View style={styles.summary}>
@@ -109,15 +124,51 @@ const UserInterfaceScreen = ({ navigation }) => {
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryValue}>100%</Text>
-                <Text style={styles.summaryLabel}>Expedientes</Text>
+                <Text style={styles.summaryValue}>
+                  {isLoadingPatients ? '…' : 'Activa'}
+                </Text>
+                <Text style={styles.summaryLabel}>Persistencia</Text>
               </View>
             </View>
 
-            <Text style={styles.title}>Directorio de pacientes</Text>
-            <Text style={styles.subtitle}>
-              Consulta y actualiza cada expediente
-            </Text>
+            <View style={styles.titleRow}>
+              <View style={styles.titleBlock}>
+                <Text style={styles.title}>Directorio de pacientes</Text>
+                <Text style={styles.subtitle}>
+                  Consulta y actualiza cada expediente
+                </Text>
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Ver base de datos SQLite"
+                onPress={() => navigation.navigate('DatabaseViewer')}
+                style={({ pressed }) => [
+                  styles.dbButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons
+                  name="server-outline"
+                  size={15}
+                  color={colors.primaryDeep}
+                />
+                <Text style={styles.dbButtonText}>SQLite</Text>
+              </Pressable>
+            </View>
+
+            {patientsError ? (
+              <View style={styles.errorBanner}>
+                <Ionicons
+                  name="warning-outline"
+                  size={16}
+                  color={colors.danger}
+                />
+                <Text style={styles.errorText}>
+                  No se pudo abrir la base local. Desliza para reintentar.
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.searchWrap}>
               <Ionicons name="search" size={18} color={colors.muted} />
@@ -154,15 +205,24 @@ const UserInterfaceScreen = ({ navigation }) => {
           </View>
         }
         ListEmptyComponent={
-          <EmptyState
-            icon="people-outline"
-            title="No se encontraron pacientes"
-            message={
-              query
-                ? 'Prueba con otro nombre o limpia la búsqueda.'
-                : 'Registra tu primer paciente para comenzar.'
-            }
-          />
+          isLoadingPatients ? (
+            <View style={styles.loading}>
+              <ActivityIndicator size="small" color={colors.primaryDark} />
+              <Text style={styles.loadingText}>
+                Cargando pacientes desde SQLite…
+              </Text>
+            </View>
+          ) : (
+            <EmptyState
+              icon="people-outline"
+              title="No se encontraron pacientes"
+              message={
+                query
+                  ? 'Prueba con otro nombre o limpia la búsqueda.'
+                  : 'Registra tu primer paciente para comenzar.'
+              }
+            />
+          )
         }
       />
 
@@ -230,8 +290,16 @@ const createStyles = (colors, isDark) =>
       height: 30,
       backgroundColor: colors.border,
     },
-    title: {
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: spacing.md,
       marginTop: spacing.xxl,
+    },
+    titleBlock: {
+      flex: 1,
+    },
+    title: {
       fontSize: 23,
       fontWeight: '800',
       color: colors.text,
@@ -239,6 +307,50 @@ const createStyles = (colors, isDark) =>
     },
     subtitle: {
       marginTop: 4,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    dbButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 7,
+      borderRadius: radius.pill,
+      backgroundColor: colors.primarySoft,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      marginBottom: 2,
+    },
+    dbButtonText: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+    },
+    errorBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.dangerSoft,
+      borderWidth: 1,
+      borderColor: colors.danger,
+    },
+    errorText: {
+      flex: 1,
+      fontSize: 11.5,
+      fontWeight: '600',
+      color: colors.danger,
+    },
+    loading: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: spacing.xxl,
+      gap: spacing.sm,
+    },
+    loadingText: {
       fontSize: 12.5,
       color: colors.muted,
     },

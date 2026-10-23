@@ -2,16 +2,24 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 
+import {
+  createPatient,
+  deletePatient as deletePatientInDb,
+  fetchPatients,
+  updatePatient as updatePatientInDb,
+} from '../database/patientsRepository';
+
 /**
  * Estado clínico compartido (pacientes, citas e historial).
  *
- * Las pantallas de listado, detalle y formularios leen y escriben aquí, de
- * modo que los cambios se reflejan al instante en toda la aplicación.
- * La persistencia en backend queda para una etapa posterior.
+ * Los pacientes se persisten en la base SQLite local (expo-sqlite) y se
+ * cargan al iniciar la app. Las citas y los registros médicos siguen en
+ * memoria; su persistencia queda para una etapa posterior.
  */
 const ClinicContext = createContext(null);
 
@@ -48,61 +56,6 @@ export const formatDate = (isoDate, options = {}) => {
 
 export const formatLongDate = (isoDate) =>
   formatDate(isoDate, { weekday: 'long', day: 'numeric', month: 'long' });
-
-const seedPatients = [
-  {
-    id: 'pac-1',
-    nombre: 'María Pérez',
-    edad: '7',
-    sexo: 'Femenino',
-    tutor: 'José Pérez',
-    telefono: '+503 7213 7890',
-    condicion: 'Asma',
-    alergias: 'Penicilina',
-    tipoSangre: 'O+',
-    direccion: 'Col. Escalón, San Salvador',
-    notas: 'Usa inhalador de rescate. Control mensual.',
-  },
-  {
-    id: 'pac-2',
-    nombre: 'Juan Pérez',
-    edad: '5',
-    sexo: 'Masculino',
-    tutor: 'Ana López',
-    telefono: '+503 7456 1203',
-    condicion: 'Gripe',
-    alergias: 'Ninguna',
-    tipoSangre: 'A+',
-    direccion: 'Col. Layco, San Salvador',
-    notas: 'Seguimiento por cuadro respiratorio.',
-  },
-  {
-    id: 'pac-3',
-    nombre: 'Ana García',
-    edad: '9',
-    sexo: 'Femenino',
-    tutor: 'Luis García',
-    telefono: '+503 7890 4421',
-    condicion: 'Alergia estacional',
-    alergias: 'Polen',
-    tipoSangre: 'B+',
-    direccion: 'Santa Tecla, La Libertad',
-    notas: 'Evitar exposición al polen en temporada seca.',
-  },
-  {
-    id: 'pac-4',
-    nombre: 'Sofía Ramírez',
-    edad: '3',
-    sexo: 'Femenino',
-    tutor: 'Carmen Ramírez',
-    telefono: '+503 7012 8890',
-    condicion: 'Control de crecimiento',
-    alergias: 'Ninguna',
-    tipoSangre: 'O-',
-    direccion: 'Mejicanos, San Salvador',
-    notas: 'Esquema de vacunación al día.',
-  },
-];
 
 const seedAppointments = [
   {
@@ -195,17 +148,42 @@ const seedRecords = [
 ];
 
 export const ClinicProvider = ({ children }) => {
-  const [patients, setPatients] = useState(seedPatients);
+  const [patients, setPatients] = useState([]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(true);
+  const [patientsError, setPatientsError] = useState(null);
   const [appointments, setAppointments] = useState(seedAppointments);
   const [records, setRecords] = useState(seedRecords);
 
-  const addPatient = useCallback((data) => {
-    const id = `pac-${Date.now()}`;
+  const refreshPatients = useCallback(async () => {
+    setIsLoadingPatients(true);
+
+    try {
+      const storedPatients = await fetchPatients();
+      setPatients(storedPatients);
+      setPatientsError(null);
+      return storedPatients;
+    } catch (error) {
+      console.warn('[clinic] No se pudieron cargar los pacientes.', error);
+      setPatientsError(error);
+      return [];
+    } finally {
+      setIsLoadingPatients(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshPatients();
+  }, [refreshPatients]);
+
+  const addPatient = useCallback(async (data) => {
+    const id = await createPatient(data);
     setPatients((current) => [{ id, ...data }, ...current]);
     return id;
   }, []);
 
-  const updatePatient = useCallback((id, data) => {
+  const updatePatient = useCallback(async (id, data) => {
+    await updatePatientInDb(id, data);
+
     setPatients((current) =>
       current.map((patient) =>
         patient.id === id ? { ...patient, ...data } : patient
@@ -227,7 +205,9 @@ export const ClinicProvider = ({ children }) => {
     );
   }, []);
 
-  const deletePatient = useCallback((id) => {
+  const deletePatient = useCallback(async (id) => {
+    await deletePatientInDb(id);
+
     setPatients((current) => current.filter((patient) => patient.id !== id));
     setAppointments((current) =>
       current.filter((appointment) => appointment.pacienteId !== id)
@@ -280,6 +260,9 @@ export const ClinicProvider = ({ children }) => {
       patients,
       appointments,
       records,
+      isLoadingPatients,
+      patientsError,
+      refreshPatients,
       addPatient,
       updatePatient,
       deletePatient,
@@ -297,6 +280,9 @@ export const ClinicProvider = ({ children }) => {
       patients,
       appointments,
       records,
+      isLoadingPatients,
+      patientsError,
+      refreshPatients,
       addPatient,
       updatePatient,
       deletePatient,

@@ -27,6 +27,34 @@ const bloodOptions = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map(
   (value) => ({ value, label: value })
 );
 
+const isValidISODate = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+};
+
+const calculateAge = (isoDate) => {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const today = new Date();
+  let age = today.getFullYear() - year;
+
+  if (
+    today.getMonth() + 1 < month ||
+    (today.getMonth() + 1 === month && today.getDate() < day)
+  ) {
+    age -= 1;
+  }
+
+  return age;
+};
+
 const PatientFormScreen = ({ navigation, route }) => {
   const { patients, addPatient, updatePatient } = useClinic();
   const { colors, isDark } = useTheme();
@@ -45,11 +73,22 @@ const PatientFormScreen = ({ navigation, route }) => {
   const [sexo, setSexo] = useState(editing?.sexo || 'Femenino');
   const [tutor, setTutor] = useState(editing?.tutor || '');
   const [telefono, setTelefono] = useState(editing?.telefono || '');
+  const [correo, setCorreo] = useState(editing?.correo || '');
+  const [fechaNacimiento, setFechaNacimiento] = useState(
+    editing?.fechaNacimiento || ''
+  );
+  const [contactoEmergencia, setContactoEmergencia] = useState(
+    editing?.contactoEmergencia || ''
+  );
+  const [telefonoEmergencia, setTelefonoEmergencia] = useState(
+    editing?.telefonoEmergencia || ''
+  );
   const [tipoSangre, setTipoSangre] = useState(editing?.tipoSangre || 'O+');
   const [condicion, setCondicion] = useState(editing?.condicion || '');
   const [alergias, setAlergias] = useState(editing?.alergias || 'Ninguna');
   const [direccion, setDireccion] = useState(editing?.direccion || '');
   const [notas, setNotas] = useState(editing?.notas || '');
+  const [saving, setSaving] = useState(false);
 
   // Sincroniza los campos si se reutiliza la pantalla con otro paciente.
   useEffect(() => {
@@ -62,6 +101,10 @@ const PatientFormScreen = ({ navigation, route }) => {
     setSexo(current?.sexo || 'Femenino');
     setTutor(current?.tutor || '');
     setTelefono(current?.telefono || '');
+    setCorreo(current?.correo || '');
+    setFechaNacimiento(current?.fechaNacimiento || '');
+    setContactoEmergencia(current?.contactoEmergencia || '');
+    setTelefonoEmergencia(current?.telefonoEmergencia || '');
     setTipoSangre(current?.tipoSangre || 'O+');
     setCondicion(current?.condicion || '');
     setAlergias(current?.alergias || 'Ninguna');
@@ -70,7 +113,16 @@ const PatientFormScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientId]);
 
-  const handleSubmit = () => {
+  const handleBirthDateChange = (value) => {
+    setFechaNacimiento(value);
+
+    // Si la fecha es válida, calcula la edad automáticamente.
+    if (isValidISODate(value)) {
+      setEdad(String(Math.max(calculateAge(value), 0)));
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!nombre.trim()) {
       Alert.alert('Falta el nombre', 'Escribe el nombre del paciente.');
       return;
@@ -89,12 +141,32 @@ const PatientFormScreen = ({ navigation, route }) => {
       return;
     }
 
+    if (fechaNacimiento.trim() && !isValidISODate(fechaNacimiento.trim())) {
+      Alert.alert(
+        'Fecha inválida',
+        'Usa el formato AAAA-MM-DD, por ejemplo 2019-05-14.'
+      );
+      return;
+    }
+
+    if (correo.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+      Alert.alert(
+        'Correo inválido',
+        'Escribe un correo electrónico válido, por ejemplo tutor@correo.com.'
+      );
+      return;
+    }
+
     const payload = {
       nombre: nombre.trim(),
       edad: edad.trim(),
       sexo,
       tutor: tutor.trim(),
       telefono: telefono.trim(),
+      correo: correo.trim(),
+      fechaNacimiento: fechaNacimiento.trim(),
+      contactoEmergencia: contactoEmergencia.trim(),
+      telefonoEmergencia: telefonoEmergencia.trim(),
       tipoSangre,
       condicion: condicion.trim() || 'Sin condición registrada',
       alergias: alergias.trim() || 'Ninguna',
@@ -102,13 +174,25 @@ const PatientFormScreen = ({ navigation, route }) => {
       notas: notas.trim(),
     };
 
-    if (editing) {
-      updatePatient(editing.id, payload);
-    } else {
-      addPatient(payload);
-    }
+    try {
+      setSaving(true);
 
-    navigation.goBack();
+      if (editing) {
+        await updatePatient(editing.id, payload);
+      } else {
+        await addPatient(payload);
+      }
+
+      navigation.goBack();
+    } catch (error) {
+      console.warn('[patients] No se pudo guardar el paciente.', error);
+      Alert.alert(
+        'No se pudo guardar',
+        'Ocurrió un error al escribir en la base de datos. Intenta de nuevo.'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -134,7 +218,7 @@ const PatientFormScreen = ({ navigation, route }) => {
               {editing ? 'Actualizar expediente' : 'Nuevo paciente'}
             </Text>
             <Text style={styles.bannerSubtitle}>
-              Los datos se guardan en el directorio local.
+              Los datos se guardan en la base SQLite del dispositivo.
             </Text>
           </View>
         </View>
@@ -169,6 +253,26 @@ const PatientFormScreen = ({ navigation, route }) => {
             </View>
           </View>
 
+          <FormField
+            label="Fecha de nacimiento"
+            value={fechaNacimiento}
+            onChangeText={handleBirthDateChange}
+            placeholder="AAAA-MM-DD (ej. 2019-05-14)"
+            keyboardType="numbers-and-punctuation"
+            maxLength={10}
+            autoCapitalize="none"
+          />
+
+          <FormField
+            label="Correo electrónico"
+            value={correo}
+            onChangeText={setCorreo}
+            placeholder="tutor@correo.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
           <ChipSelect
             label="Sexo"
             options={sexOptions}
@@ -183,6 +287,27 @@ const PatientFormScreen = ({ navigation, route }) => {
             placeholder="Nombre del padre, madre o encargado"
             autoCapitalize="words"
           />
+
+          <View style={styles.row}>
+            <View style={styles.half}>
+              <FormField
+                label="Contacto de emergencia"
+                value={contactoEmergencia}
+                onChangeText={setContactoEmergencia}
+                placeholder="Nombre completo"
+                autoCapitalize="words"
+              />
+            </View>
+            <View style={styles.half}>
+              <FormField
+                label="Teléfono de emergencia"
+                value={telefonoEmergencia}
+                onChangeText={setTelefonoEmergencia}
+                placeholder="+503 0000 0000"
+                keyboardType="phone-pad"
+              />
+            </View>
+          </View>
 
           <ChipSelect
             label="Tipo de sangre"
@@ -226,12 +351,15 @@ const PatientFormScreen = ({ navigation, route }) => {
             title={editing ? 'Guardar cambios' : 'Registrar paciente'}
             icon={editing ? 'save-outline' : 'checkmark-circle-outline'}
             onPress={handleSubmit}
+            loading={saving}
+            disabled={saving}
             fullWidth
           />
           <AppButton
             title="Cancelar"
             variant="ghost"
             onPress={() => navigation.goBack()}
+            disabled={saving}
             fullWidth
             style={styles.cancel}
           />
