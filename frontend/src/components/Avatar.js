@@ -1,15 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
 
-const palettes = [
-  { bg: colors.primarySoft, fg: colors.primaryDeep },
-  { bg: colors.accentSoft, fg: colors.success },
-  { bg: colors.purpleSoft, fg: colors.purple },
-  { bg: colors.amberSoft, fg: '#b45309' },
-  { bg: colors.roseSoft, fg: colors.rose },
-];
+import { useTheme } from '../context/ThemeContext';
 
 const getInitials = (name = '') =>
   name
@@ -23,6 +16,19 @@ const getInitials = (name = '') =>
  * Avatar circular con iniciales y color estable según el nombre.
  */
 const Avatar = ({ name, size = 44, icon, style }) => {
+  const { colors } = useTheme();
+
+  const palettes = useMemo(
+    () => [
+      { bg: colors.primarySoft, fg: colors.primaryDeep },
+      { bg: colors.accentSoft, fg: colors.success },
+      { bg: colors.purpleSoft, fg: colors.purple },
+      { bg: colors.amberSoft, fg: colors.amber },
+      { bg: colors.roseSoft, fg: colors.rose },
+    ],
+    [colors]
+  );
+
   const hash = (name || '')
     .split('')
     .reduce((total, char) => total + char.charCodeAt(0), 0);

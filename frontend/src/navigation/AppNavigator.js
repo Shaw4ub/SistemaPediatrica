@@ -1,29 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   NavigationContainer,
   DefaultTheme,
+  DarkTheme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import LoginScreen from '../screens/LoginScreen';
 import MainDrawerNavigator from './MainDrawerNavigator';
-import { colors } from '../theme';
 
 const Stack = createNativeStackNavigator();
-
-const navigationTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: colors.primaryDark,
-    background: colors.bg,
-    card: colors.surface,
-    text: colors.text,
-    border: colors.border,
-    notification: colors.rose,
-  },
-};
 
 /**
  * Navegación raíz.
@@ -31,9 +19,31 @@ const navigationTheme = {
  * Sin sesión → Stack de autenticación (Login).
  * Con sesión  → Drawer principal, que contiene las pestañas inferiores y
  *               las pantallas secundarias de configuración.
+ *
+ * El tema de React Navigation se sincroniza con ThemeContext para que los
+ * headers, el fondo y la tab bar cambien de inmediato.
  */
 const AppNavigator = () => {
   const { isAuthenticated } = useAuth();
+  const { colors, isDark } = useTheme();
+
+  const navigationTheme = useMemo(() => {
+    const baseTheme = isDark ? DarkTheme : DefaultTheme;
+
+    return {
+      ...baseTheme,
+      dark: isDark,
+      colors: {
+        ...baseTheme.colors,
+        primary: colors.primaryDark,
+        background: colors.bg,
+        card: colors.surface,
+        text: colors.text,
+        border: colors.border,
+        notification: colors.rose,
+      },
+    };
+  }, [colors, isDark]);
 
   return (
     <NavigationContainer theme={navigationTheme}>

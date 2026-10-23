@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { colors, radius, shadows, spacing } from '../theme';
+
+import { useTheme } from '../context/ThemeContext';
+import { radius, shadows, spacing } from '../theme';
 
 /**
- * Tarjeta blanca base. Si recibe `onPress` se vuelve interactiva.
+ * Tarjeta base. Si recibe `onPress` se vuelve interactiva.
+ * El color de superficie cambia automáticamente con el tema global.
  */
 const AppCard = ({ children, style, onPress, padded = true }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
+
   const content = (
     <View
       style={[
@@ -33,21 +42,23 @@ const AppCard = ({ children, style, onPress, padded = true }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadows.card,
-  },
-  padded: {
-    padding: spacing.lg,
-  },
-  pressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.995 }],
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    padded: {
+      padding: spacing.lg,
+    },
+    pressed: {
+      opacity: 0.9,
+      transform: [{ scale: 0.995 }],
+    },
+  });
 
 export default AppCard;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import { FormField } from '../components/FormField';
-import { colors, radius, spacing } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { radius, spacing } from '../theme';
 
 const tips = [
   'Usa al menos 8 caracteres.',
@@ -22,6 +23,11 @@ const tips = [
 ];
 
 const ChangePasswordScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -148,88 +154,89 @@ const ChangePasswordScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-  },
-  hero: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.lg,
-  },
-  heroIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  heroTitle: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  heroSubtitle: {
-    marginTop: 5,
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.muted,
-    textAlign: 'center',
-  },
-  card: {
-    paddingBottom: spacing.xs,
-  },
-  tipsCard: {
-    marginTop: spacing.lg,
-    padding: spacing.lg,
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
-  },
-  tipsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: spacing.sm,
-  },
-  tipsTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-  },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  tipDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.primaryDark,
-    marginRight: spacing.sm,
-  },
-  tipText: {
-    fontSize: 11.5,
-    color: colors.primaryDeep,
-  },
-  submit: {
-    marginTop: spacing.xl,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 640,
+      alignSelf: 'center',
+    },
+    hero: {
+      alignItems: 'center',
+      paddingVertical: spacing.xl,
+      paddingHorizontal: spacing.xl,
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: spacing.lg,
+    },
+    heroIcon: {
+      width: 58,
+      height: 58,
+      borderRadius: 18,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.md,
+    },
+    heroTitle: {
+      fontSize: 19,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    heroSubtitle: {
+      marginTop: 5,
+      fontSize: 12,
+      lineHeight: 18,
+      color: colors.muted,
+      textAlign: 'center',
+    },
+    card: {
+      paddingBottom: spacing.xs,
+    },
+    tipsCard: {
+      marginTop: spacing.lg,
+      padding: spacing.lg,
+      borderRadius: radius.md,
+      backgroundColor: colors.primarySoft,
+    },
+    tipsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: spacing.sm,
+    },
+    tipsTitle: {
+      fontSize: 12.5,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+    },
+    tipRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    tipDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.primaryDark,
+      marginRight: spacing.sm,
+    },
+    tipText: {
+      fontSize: 11.5,
+      color: colors.primaryDeep,
+    },
+    submit: {
+      marginTop: spacing.xl,
+    },
+  });
 
 export default ChangePasswordScreen;

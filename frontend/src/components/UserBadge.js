@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
 import { useAuth } from '../context/AuthContext';
-import { colors, radius } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { radius } from '../theme';
 
 /**
  * Muestra el nombre del usuario logueado en el encabezado de todas las
@@ -10,6 +12,8 @@ import { colors, radius } from '../theme';
  */
 const UserBadge = () => {
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (!user) {
     return null;
@@ -25,26 +29,27 @@ const UserBadge = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primarySoft,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    maxWidth: 170,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#c7e6fa',
-  },
-  name: {
-    marginLeft: 5,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.primaryDeep,
-    flexShrink: 1,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primarySoft,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: radius.pill,
+      maxWidth: 170,
+      marginRight: 10,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
+    name: {
+      marginLeft: 5,
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.primaryDeep,
+      flexShrink: 1,
+    },
+  });
 
 export default UserBadge;

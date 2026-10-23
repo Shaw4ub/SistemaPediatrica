@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
  * Paleta y tokens visuales compartidos por toda la aplicación.
  * Centralizarlos evita colores sueltos y mantiene una identidad coherente.
  */
-export const colors = {
+export const lightColors = {
   primary: '#0ea5e9',
   primaryDark: '#0284c7',
   primaryDeep: '#075985',
@@ -18,6 +18,7 @@ export const colors = {
 
   amber: '#f59e0b',
   amberSoft: '#fef3c7',
+  amberText: '#b45309',
 
   rose: '#e11d48',
   roseSoft: '#ffe4e6',
@@ -31,6 +32,7 @@ export const colors = {
   bg: '#f4f8fc',
   surface: '#ffffff',
   surfaceMuted: '#f8fafc',
+  neutralSoft: '#eef2f7',
 
   text: '#0f172a',
   textSecondary: '#334155',
@@ -41,6 +43,57 @@ export const colors = {
   borderStrong: '#cbd5e1',
   overlay: 'rgba(15, 23, 42, 0.42)',
 };
+
+/**
+ * Paleta oscura. Mantiene los mismos nombres de token que la paleta clara
+ * para que las pantallas solo necesiten cambiar el objeto de colores.
+ */
+export const darkColors = {
+  primary: '#38bdf8',
+  primaryDark: '#7dd3fc',
+  primaryDeep: '#bae6fd',
+  primarySoft: '#0c4a6e',
+
+  accent: '#2dd4bf',
+  accentSoft: '#134e4a',
+
+  purple: '#c4b5fd',
+  purpleSoft: '#4c1d95',
+
+  amber: '#fbbf24',
+  amberSoft: '#451a03',
+  amberText: '#fbbf24',
+
+  rose: '#fb7185',
+  roseSoft: '#4c0519',
+
+  danger: '#f87171',
+  dangerSoft: '#450a0a',
+
+  success: '#5eead4',
+  successSoft: '#042f2e',
+
+  bg: '#070f1c',
+  surface: '#0f1b2d',
+  surfaceMuted: '#0b1626',
+  neutralSoft: '#1e293b',
+
+  text: '#f1f5f9',
+  textSecondary: '#cbd5e1',
+  muted: '#94a3b8',
+  subtle: '#64748b',
+
+  border: '#1e2f45',
+  borderStrong: '#334155',
+  overlay: 'rgba(2, 6, 23, 0.75)',
+};
+
+/**
+ * Alias histórico: las pantallas que aún no usan ThemeContext siguen
+ * obteniendo la paleta clara. Las pantallas con tema dinámico usan
+ * `useTheme().colors`.
+ */
+export const colors = lightColors;
 
 export const spacing = {
   xs: 4,
@@ -107,6 +160,18 @@ export const shadows = {
 };
 
 export const heroGradient = ['#38bdf8', '#0284c7', '#0369a1'];
+export const darkHeroGradient = ['#0ea5e9', '#0369a1', '#075985'];
 export const drawerGradient = ['#0ea5e9', '#0369a1'];
+export const darkDrawerGradient = ['#0c4a6e', '#082f49'];
 
-export default { colors, spacing, radius, typography, shadows };
+export const getShadowColor = (isDark) => (isDark ? '#000000' : '#0f172a');
+
+export default {
+  colors,
+  lightColors,
+  darkColors,
+  spacing,
+  radius,
+  typography,
+  shadows,
+};

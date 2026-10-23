@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
-import { colors } from '../theme';
+
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * Botón hamburguesa que abre el Drawer desde cualquier tab.
@@ -10,6 +11,8 @@ import { colors } from '../theme';
  */
 const DrawerMenuButton = () => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Pressable
@@ -24,19 +27,20 @@ const DrawerMenuButton = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 6,
-    backgroundColor: colors.primarySoft,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    button: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 6,
+      backgroundColor: colors.primarySoft,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
 
 export default DrawerMenuButton;

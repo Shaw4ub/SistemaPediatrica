@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -13,11 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import Avatar from '../components/Avatar';
 import InfoRow from '../components/InfoRow';
-import { colors, radius, shadows, spacing } from '../theme';
+import { radius, shadows, spacing } from '../theme';
 
 const segments = [
   { key: 'admin', label: 'Admin' },
@@ -25,44 +26,61 @@ const segments = [
   { key: 'paciente', label: 'Paciente' },
 ];
 
-const ActionRow = ({ icon, title, subtitle, onPress, danger = false }) => (
-  <Pressable
-    accessibilityRole="button"
-    onPress={onPress}
-    style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
-  >
-    <View
-      style={[
-        styles.actionIcon,
-        { backgroundColor: danger ? colors.dangerSoft : colors.primarySoft },
-      ]}
+const ActionRow = ({ icon, title, subtitle, onPress, danger = false }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
     >
+      <View
+        style={[
+          styles.actionIcon,
+          { backgroundColor: danger ? colors.dangerSoft : colors.primarySoft },
+        ]}
+      >
+        <Ionicons
+          name={icon}
+          size={19}
+          color={danger ? colors.danger : colors.primaryDark}
+        />
+      </View>
+      <View style={styles.actionInfo}>
+        <Text style={[styles.actionTitle, danger && styles.actionTitleDanger]}>
+          {title}
+        </Text>
+        <Text style={styles.actionSubtitle}>{subtitle}</Text>
+      </View>
       <Ionicons
-        name={icon}
-        size={19}
-        color={danger ? colors.danger : colors.primaryDark}
+        name="chevron-forward"
+        size={17}
+        color={colors.borderStrong}
       />
-    </View>
-    <View style={styles.actionInfo}>
-      <Text style={[styles.actionTitle, danger && styles.actionTitleDanger]}>
-        {title}
-      </Text>
-      <Text style={styles.actionSubtitle}>{subtitle}</Text>
-    </View>
-    <Ionicons
-      name="chevron-forward"
-      size={17}
-      color={colors.borderStrong}
-    />
-  </Pressable>
-);
+    </Pressable>
+  );
+};
 
 const ProfileScreen = ({ navigation, route }) => {
   const { user, logout } = useAuth();
   const { patients, appointments, records } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const [profileType, setProfileType] = useState(
     route.params?.perfilInicial || 'admin'
   );
+
+  const bannerGradient = isDark
+    ? [colors.primarySoft, colors.surfaceMuted]
+    : ['#e0f2fe', '#f0f9ff'];
 
   const samplePatient = patients[0];
 
@@ -99,7 +117,7 @@ const ProfileScreen = ({ navigation, route }) => {
 
       <View style={styles.heroCard}>
         <LinearGradient
-          colors={['#e0f2fe', '#f0f9ff']}
+          colors={bannerGradient}
           style={styles.heroBanner}
         >
           <View style={styles.heroCircle} />
@@ -290,194 +308,197 @@ const ProfileScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  originChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
-    gap: 4,
-    backgroundColor: colors.primarySoft,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    marginBottom: spacing.md,
-  },
-  originText: {
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: colors.primaryDeep,
-  },
-  heroCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    ...shadows.card,
-  },
-  heroBanner: {
-    alignItems: 'center',
-    paddingVertical: spacing.xxl,
-    paddingHorizontal: spacing.xl,
-    overflow: 'hidden',
-  },
-  heroCircle: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(14,165,233,0.08)',
-    top: -80,
-    right: -50,
-  },
-  name: {
-    marginTop: spacing.md,
-    fontSize: 21,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.4,
-  },
-  roleChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: spacing.xs,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderWidth: 1,
-    borderColor: colors.primarySoft,
-  },
-  roleText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: colors.primaryDeep,
-  },
-  email: {
-    marginTop: spacing.sm,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  editButton: {
-    marginTop: spacing.md,
-  },
-  stats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-  },
-  statLabel: {
-    marginTop: 1,
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  statDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: colors.border,
-  },
-  sectionTitle: {
-    marginTop: spacing.xxl,
-    marginBottom: spacing.sm,
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  segmented: {
-    flexDirection: 'row',
-    backgroundColor: '#e8eff7',
-    borderRadius: radius.md,
-    padding: 4,
-    marginBottom: spacing.md,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: radius.sm,
-  },
-  segmentActive: {
-    backgroundColor: colors.surface,
-    ...shadows.card,
-  },
-  segmentText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.muted,
-  },
-  segmentTextActive: {
-    color: colors.primaryDeep,
-  },
-  card: {
-    paddingVertical: spacing.xs,
-  },
-  actionsCard: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-  },
-  actionIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  actionInfo: {
-    flex: 1,
-    paddingRight: spacing.sm,
-  },
-  actionTitle: {
-    fontSize: 13.5,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  actionTitleDanger: {
-    color: colors.danger,
-  },
-  actionSubtitle: {
-    marginTop: 1,
-    fontSize: 11,
-    color: colors.muted,
-  },
-  actionDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginLeft: 50,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    originChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'center',
+      gap: 4,
+      backgroundColor: colors.primarySoft,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: radius.pill,
+      marginBottom: spacing.md,
+    },
+    originText: {
+      fontSize: 10.5,
+      fontWeight: '600',
+      color: colors.primaryDeep,
+    },
+    heroCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    heroBanner: {
+      alignItems: 'center',
+      paddingVertical: spacing.xxl,
+      paddingHorizontal: spacing.xl,
+      overflow: 'hidden',
+    },
+    heroCircle: {
+      position: 'absolute',
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      backgroundColor: 'rgba(14,165,233,0.08)',
+      top: -80,
+      right: -50,
+    },
+    name: {
+      marginTop: spacing.md,
+      fontSize: 21,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.4,
+    },
+    roleChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: spacing.xs,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.primarySoft,
+    },
+    roleText: {
+      fontSize: 10.5,
+      fontWeight: '700',
+      color: colors.primaryDeep,
+    },
+    email: {
+      marginTop: spacing.sm,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    editButton: {
+      marginTop: spacing.md,
+    },
+    stats: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    stat: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+    },
+    statLabel: {
+      marginTop: 1,
+      fontSize: 10.5,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    statDivider: {
+      width: 1,
+      height: 28,
+      backgroundColor: colors.border,
+    },
+    sectionTitle: {
+      marginTop: spacing.xxl,
+      marginBottom: spacing.sm,
+      fontSize: 14,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    segmented: {
+      flexDirection: 'row',
+      backgroundColor: colors.neutralSoft,
+      borderRadius: radius.md,
+      padding: 4,
+      marginBottom: spacing.md,
+    },
+    segment: {
+      flex: 1,
+      paddingVertical: 8,
+      alignItems: 'center',
+      borderRadius: radius.sm,
+    },
+    segmentActive: {
+      backgroundColor: colors.surface,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    segmentText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.muted,
+    },
+    segmentTextActive: {
+      color: colors.primaryDeep,
+    },
+    card: {
+      paddingVertical: spacing.xs,
+    },
+    actionsCard: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+    },
+    actionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+    },
+    actionIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    actionInfo: {
+      flex: 1,
+      paddingRight: spacing.sm,
+    },
+    actionTitle: {
+      fontSize: 13.5,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    actionTitleDanger: {
+      color: colors.danger,
+    },
+    actionSubtitle: {
+      marginTop: 1,
+      fontSize: 11,
+      color: colors.muted,
+    },
+    actionDivider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginLeft: 50,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
 
 export default ProfileScreen;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -12,14 +12,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import AppCard from '../components/AppCard';
 import Avatar from '../components/Avatar';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 const SettingRow = ({
   icon,
-  iconColor = colors.primaryDark,
-  iconBackground = colors.primarySoft,
+  iconColor,
+  iconBackground,
   title,
   subtitle,
   onPress,
@@ -27,10 +28,20 @@ const SettingRow = ({
   danger = false,
   last = false,
 }) => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const resolvedIconColor = iconColor || colors.primaryDark;
+  const resolvedIconBackground = iconBackground || colors.primarySoft;
+
   const content = (
     <>
-      <View style={[styles.iconWrap, { backgroundColor: iconBackground }]}>
-        <Ionicons name={icon} size={19} color={iconColor} />
+      <View
+        style={[
+          styles.iconWrap,
+          { backgroundColor: resolvedIconBackground },
+        ]}
+      >
+        <Ionicons name={icon} size={19} color={resolvedIconColor} />
       </View>
       <View style={styles.rowInfo}>
         <Text style={[styles.rowTitle, danger && styles.rowTitleDanger]}>
@@ -70,6 +81,8 @@ const SettingRow = ({
 
 const SettingsScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
+  const { colors, isDark, setDarkMode } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [notifications, setNotifications] = useState(true);
   const [reminders, setReminders] = useState(true);
   const [sounds, setSounds] = useState(false);
@@ -162,7 +175,7 @@ const SettingsScreen = ({ navigation }) => {
           icon="alarm-outline"
           title="Recordatorios de citas"
           subtitle="Avisar 24 horas antes de cada cita"
-          iconColor="#b45309"
+          iconColor={colors.amberText}
           iconBackground={colors.amberSoft}
           right={
             <Switch
@@ -187,6 +200,26 @@ const SettingsScreen = ({ navigation }) => {
               thumbColor="#ffffff"
             />
           }
+        />
+        <SettingRow
+          icon={isDark ? 'moon' : 'moon-outline'}
+          title="Modo oscuro"
+          subtitle={
+            isDark
+              ? 'Tema oscuro activo en toda la aplicación'
+              : 'Cambia la apariencia de la aplicación'
+          }
+          iconColor={colors.purple}
+          iconBackground={colors.purpleSoft}
+          right={
+            <Switch
+              value={isDark}
+              onValueChange={setDarkMode}
+              trackColor={{ false: colors.borderStrong, true: colors.primary }}
+              thumbColor="#ffffff"
+              accessibilityLabel="Activar modo oscuro"
+            />
+          }
           last
         />
       </AppCard>
@@ -208,7 +241,7 @@ const SettingsScreen = ({ navigation }) => {
           icon="lock-closed-outline"
           title="Cambiar contraseña"
           subtitle="Actualiza tu clave de acceso"
-          iconColor="#b45309"
+          iconColor={colors.amberText}
           iconBackground={colors.amberSoft}
           onPress={() => navigation.navigate('ChangePassword')}
         />
@@ -286,114 +319,115 @@ const SettingsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-  },
-  profileInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-    marginRight: spacing.sm,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  profileRole: {
-    marginTop: 1,
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  profileEmail: {
-    marginTop: 2,
-    fontSize: 11,
-    color: colors.muted,
-  },
-  editButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionLabel: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
-    marginLeft: spacing.xs,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: colors.subtle,
-  },
-  card: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  lastRow: {
-    borderBottomWidth: 0,
-  },
-  iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  rowInfo: {
-    flex: 1,
-    paddingRight: spacing.sm,
-  },
-  rowTitle: {
-    fontSize: 13.5,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  rowTitleDanger: {
-    color: colors.danger,
-  },
-  rowSubtitle: {
-    marginTop: 1,
-    fontSize: 11,
-    color: colors.muted,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  version: {
-    marginTop: spacing.xxl,
-    textAlign: 'center',
-    fontSize: 10.5,
-    color: colors.subtle,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    profileCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+    },
+    profileInfo: {
+      flex: 1,
+      marginLeft: spacing.md,
+      marginRight: spacing.sm,
+    },
+    profileName: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    profileRole: {
+      marginTop: 1,
+      fontSize: 11.5,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    profileEmail: {
+      marginTop: 2,
+      fontSize: 11,
+      color: colors.muted,
+    },
+    editButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sectionLabel: {
+      marginTop: spacing.xl,
+      marginBottom: spacing.sm,
+      marginLeft: spacing.xs,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+      textTransform: 'uppercase',
+      color: colors.subtle,
+    },
+    card: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    lastRow: {
+      borderBottomWidth: 0,
+    },
+    iconWrap: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    rowInfo: {
+      flex: 1,
+      paddingRight: spacing.sm,
+    },
+    rowTitle: {
+      fontSize: 13.5,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    rowTitleDanger: {
+      color: colors.danger,
+    },
+    rowSubtitle: {
+      marginTop: 1,
+      fontSize: 11,
+      color: colors.muted,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    version: {
+      marginTop: spacing.xxl,
+      textAlign: 'center',
+      fontSize: 10.5,
+      color: colors.subtle,
+    },
+  });
 
 export default SettingsScreen;

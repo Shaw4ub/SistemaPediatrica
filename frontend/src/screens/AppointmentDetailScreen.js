@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -11,13 +11,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import Avatar from '../components/Avatar';
 import EmptyState from '../components/EmptyState';
 import InfoRow from '../components/InfoRow';
 import StatusBadge from '../components/StatusBadge';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 const capitalize = (value = '') =>
   value.charAt(0).toUpperCase() + value.slice(1);
@@ -45,6 +46,11 @@ const AppointmentDetailScreen = ({ navigation, route }) => {
     deleteAppointment,
     formatDate,
   } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const { appointmentId } = route.params || {};
   const appointment = appointments.find((item) => item.id === appointmentId);
 
@@ -227,156 +233,157 @@ const AppointmentDetailScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  patientCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-  },
-  patientInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-    marginRight: spacing.sm,
-  },
-  patientName: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  reason: {
-    marginTop: 2,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  dateBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.lg,
-    backgroundColor: colors.primarySoft,
-  },
-  dateIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  dateTextWrap: {
-    flex: 1,
-  },
-  dateLabel: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  dateValue: {
-    marginTop: 2,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primaryDeep,
-  },
-  timeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  timeText: {
-    marginLeft: 4,
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-  },
-  sectionTitle: {
-    marginTop: spacing.xxl,
-    marginBottom: spacing.sm,
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  card: {
-    paddingVertical: spacing.xs,
-  },
-  notesCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  notesIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    backgroundColor: colors.purpleSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  notesText: {
-    flex: 1,
-    fontSize: 13.5,
-    lineHeight: 20,
-    color: colors.textSecondary,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  action: {
-    flex: 1,
-  },
-  secondaryAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.md,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.dangerSoft,
-  },
-  secondaryActionText: {
-    marginLeft: 6,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.danger,
-  },
-  deleteAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  deleteText: {
-    marginLeft: 5,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.subtle,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    patientCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+    },
+    patientInfo: {
+      flex: 1,
+      marginLeft: spacing.md,
+      marginRight: spacing.sm,
+    },
+    patientName: {
+      fontSize: 17,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    reason: {
+      marginTop: 2,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    dateBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.md,
+      padding: spacing.md,
+      borderRadius: radius.lg,
+      backgroundColor: colors.primarySoft,
+    },
+    dateIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    dateTextWrap: {
+      flex: 1,
+    },
+    dateLabel: {
+      fontSize: 10.5,
+      fontWeight: '800',
+      color: colors.primaryDark,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    dateValue: {
+      marginTop: 2,
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primaryDeep,
+    },
+    timeChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.pill,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    timeText: {
+      marginLeft: 4,
+      fontSize: 12,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+    },
+    sectionTitle: {
+      marginTop: spacing.xxl,
+      marginBottom: spacing.sm,
+      fontSize: 14,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    card: {
+      paddingVertical: spacing.xs,
+    },
+    notesCard: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    notesIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      backgroundColor: colors.purpleSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    notesText: {
+      flex: 1,
+      fontSize: 13.5,
+      lineHeight: 20,
+      color: colors.textSecondary,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: spacing.md,
+    },
+    action: {
+      flex: 1,
+    },
+    secondaryAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: spacing.md,
+      paddingVertical: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.dangerSoft,
+    },
+    secondaryActionText: {
+      marginLeft: 6,
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.danger,
+    },
+    deleteAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: spacing.lg,
+      paddingVertical: spacing.sm,
+    },
+    deleteText: {
+      marginLeft: 5,
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.subtle,
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+  });
 
 export default AppointmentDetailScreen;

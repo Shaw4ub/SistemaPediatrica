@@ -11,10 +11,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import { FormField, ChipSelect } from '../components/FormField';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 const statusOptions = [
   { value: 'pendiente', label: 'Pendiente' },
@@ -36,6 +37,11 @@ const AppointmentFormScreen = ({ navigation, route }) => {
     updateAppointment,
     todayISO,
   } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const { appointmentId, patientId } = route.params || {};
   const editing = useMemo(
     () => appointments.find((appointment) => appointment.id === appointmentId),
@@ -232,64 +238,65 @@ const AppointmentFormScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primarySoft,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  bannerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 13,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  bannerText: {
-    flex: 1,
-  },
-  bannerTitle: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-  },
-  bannerSubtitle: {
-    marginTop: 2,
-    fontSize: 12,
-    color: colors.primaryDark,
-  },
-  card: {
-    paddingBottom: spacing.xs,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  half: {
-    flex: 1,
-  },
-  actions: {
-    marginTop: spacing.lg,
-  },
-  cancel: {
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    banner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primarySoft,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      marginBottom: spacing.lg,
+    },
+    bannerIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 13,
+      backgroundColor: isDark ? colors.surfaceMuted : '#ffffff',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    bannerText: {
+      flex: 1,
+    },
+    bannerTitle: {
+      fontSize: 14.5,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+    },
+    bannerSubtitle: {
+      marginTop: 2,
+      fontSize: 12,
+      color: colors.primaryDark,
+    },
+    card: {
+      paddingBottom: spacing.xs,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: spacing.md,
+    },
+    half: {
+      flex: 1,
+    },
+    actions: {
+      marginTop: spacing.lg,
+    },
+    cancel: {
+      marginTop: spacing.xs,
+    },
+  });
 
 export default AppointmentFormScreen;

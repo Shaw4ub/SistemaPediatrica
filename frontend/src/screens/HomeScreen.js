@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -13,67 +13,17 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import Avatar from '../components/Avatar';
 import SectionHeader from '../components/SectionHeader';
 import StatusBadge from '../components/StatusBadge';
-import { colors, heroGradient, radius, shadows, spacing } from '../theme';
-
-const quickActions = [
-  {
-    key: 'appointments',
-    title: 'Citas',
-    description: 'Agenda y programa',
-    icon: 'calendar',
-    color: colors.primaryDark,
-    soft: colors.primarySoft,
-    tab: 'CitasTab',
-  },
-  {
-    key: 'patients',
-    title: 'Pacientes',
-    description: 'Gestiona expedientes',
-    icon: 'people',
-    color: colors.success,
-    soft: colors.accentSoft,
-    tab: 'PacientesTab',
-  },
-  {
-    key: 'history',
-    title: 'Historial',
-    description: 'Consultas previas',
-    icon: 'document-text',
-    color: colors.purple,
-    soft: colors.purpleSoft,
-    tab: 'HistorialTab',
-  },
-  {
-    key: 'profile',
-    title: 'Perfil',
-    description: 'Tus datos personales',
-    icon: 'person',
-    color: '#b45309',
-    soft: colors.amberSoft,
-    tab: 'PerfilTab',
-  },
-  {
-    key: 'settings',
-    title: 'Configuración',
-    description: 'Preferencias de la app',
-    icon: 'settings',
-    color: colors.muted,
-    soft: '#eef2f7',
-    screen: 'Settings',
-  },
-  {
-    key: 'notifications',
-    title: 'Notificaciones',
-    description: 'Novedades y avisos',
-    icon: 'notifications',
-    color: colors.rose,
-    soft: colors.roseSoft,
-    screen: 'Notifications',
-  },
-];
+import {
+  darkHeroGradient,
+  heroGradient,
+  radius,
+  shadows,
+  spacing,
+} from '../theme';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -97,6 +47,11 @@ const getDayMonth = (isoDate) => {
 
 const HomeScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const {
     appointments,
     patients,
@@ -105,6 +60,66 @@ const HomeScreen = ({ navigation }) => {
     formatDate,
     formatLongDate,
   } = useClinic();
+
+  const quickActions = useMemo(
+    () => [
+      {
+        key: 'appointments',
+        title: 'Citas',
+        description: 'Agenda y programa',
+        icon: 'calendar',
+        color: colors.primaryDark,
+        soft: colors.primarySoft,
+        tab: 'CitasTab',
+      },
+      {
+        key: 'patients',
+        title: 'Pacientes',
+        description: 'Gestiona expedientes',
+        icon: 'people',
+        color: colors.success,
+        soft: colors.accentSoft,
+        tab: 'PacientesTab',
+      },
+      {
+        key: 'history',
+        title: 'Historial',
+        description: 'Consultas previas',
+        icon: 'document-text',
+        color: colors.purple,
+        soft: colors.purpleSoft,
+        tab: 'HistorialTab',
+      },
+      {
+        key: 'profile',
+        title: 'Perfil',
+        description: 'Tus datos personales',
+        icon: 'person',
+        color: colors.amberText,
+        soft: colors.amberSoft,
+        tab: 'PerfilTab',
+      },
+      {
+        key: 'settings',
+        title: 'Configuración',
+        description: 'Preferencias de la app',
+        icon: 'settings',
+        color: colors.muted,
+        soft: colors.neutralSoft,
+        screen: 'Settings',
+      },
+      {
+        key: 'notifications',
+        title: 'Notificaciones',
+        description: 'Novedades y avisos',
+        icon: 'notifications',
+        color: colors.rose,
+        soft: colors.roseSoft,
+        screen: 'Notifications',
+      },
+    ],
+    [colors]
+  );
 
   const today = todayISO();
   const todayAppointments = appointments.filter(
@@ -170,7 +185,10 @@ const HomeScreen = ({ navigation }) => {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.inner}>
-        <LinearGradient colors={heroGradient} style={styles.hero}>
+        <LinearGradient
+          colors={isDark ? darkHeroGradient : heroGradient}
+          style={styles.hero}
+        >
           <View style={styles.heroCircleLarge} />
           <View style={styles.heroCircleSmall} />
 
@@ -327,7 +345,7 @@ const HomeScreen = ({ navigation }) => {
               <Ionicons
                 name="chevron-forward"
                 size={18}
-                color={colors.primaryDark}
+                color={colors.primaryDeep}
               />
             </View>
           </Pressable>
@@ -337,7 +355,7 @@ const HomeScreen = ({ navigation }) => {
               <Ionicons
                 name="calendar-clear-outline"
                 size={24}
-                color={colors.primaryDark}
+                color={colors.primaryDeep}
               />
             </View>
             <View style={styles.emptyTextWrap}>
@@ -355,7 +373,11 @@ const HomeScreen = ({ navigation }) => {
               }
               style={styles.emptyButton}
             >
-              <Ionicons name="add" size={18} color="#fff" />
+              <Ionicons
+                name="add"
+                size={18}
+                color={isDark ? '#082f49' : '#fff'}
+              />
             </Pressable>
           </View>
         )}
@@ -442,393 +464,399 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxl,
-  },
-  inner: {
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  hero: {
-    borderRadius: radius.xxl,
-    padding: spacing.xl,
-    overflow: 'hidden',
-    ...shadows.floating,
-  },
-  heroCircleLarge: {
-    position: 'absolute',
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    top: -85,
-    right: -60,
-  },
-  heroCircleSmall: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    bottom: -50,
-    left: -25,
-  },
-  heroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  heroAvatar: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    marginRight: spacing.md,
-  },
-  heroText: {
-    flex: 1,
-  },
-  heroEyebrow: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.78)',
-    letterSpacing: 0.4,
-  },
-  heroName: {
-    marginTop: 2,
-    fontSize: 21,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.4,
-  },
-  heroRole: {
-    marginTop: 1,
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.82)',
-  },
-  heroBell: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  heroBellDot: {
-    position: 'absolute',
-    top: 10,
-    right: 11,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#fbbf24',
-    borderWidth: 1,
-    borderColor: '#0284c7',
-  },
-  datePill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-  },
-  datePillText: {
-    marginLeft: 6,
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  heroStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.18)',
-  },
-  heroStat: {
-    flex: 1,
-  },
-  heroStatValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.5,
-  },
-  heroStatLabel: {
-    marginTop: 1,
-    fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.78)',
-  },
-  heroDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    marginHorizontal: spacing.sm,
-  },
-  section: {
-    marginTop: spacing.xxl,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  quickCard: {
-    width: '48%',
-    minWidth: 140,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    ...shadows.card,
-  },
-  quickCardPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.985 }],
-  },
-  quickIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  quickTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.2,
-  },
-  quickDescription: {
-    marginTop: 3,
-    fontSize: 11.5,
-    color: colors.muted,
-    paddingRight: spacing.lg,
-  },
-  quickArrow: {
-    position: 'absolute',
-    right: spacing.md,
-    bottom: spacing.md,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  appointmentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    ...shadows.card,
-  },
-  dateBlock: {
-    width: 56,
-    height: 62,
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  dateDay: {
-    fontSize: 21,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-    lineHeight: 24,
-  },
-  dateMonth: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    letterSpacing: 0.8,
-  },
-  appointmentInfo: {
-    flex: 1,
-  },
-  appointmentTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  appointmentPatient: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  appointmentReason: {
-    marginTop: 2,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  appointmentMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 7,
-  },
-  appointmentMetaText: {
-    marginLeft: 4,
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.borderStrong,
-    marginHorizontal: 7,
-  },
-  chevron: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.sm,
-  },
-  emptyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    ...shadows.card,
-  },
-  emptyIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  emptyTextWrap: {
-    flex: 1,
-  },
-  emptyTitle: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  emptyText: {
-    marginTop: 2,
-    fontSize: 12,
-    color: colors.muted,
-  },
-  emptyButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: colors.primaryDark,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activityCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
-    ...shadows.card,
-  },
-  activityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-  },
-  activityRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  activityDot: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: colors.purpleSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  activityInfo: {
-    flex: 1,
-    paddingRight: spacing.sm,
-  },
-  activityTitle: {
-    fontSize: 13.5,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  activitySubtitle: {
-    marginTop: 2,
-    fontSize: 11.5,
-    color: colors.muted,
-  },
-  logoutCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.xxl,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    ...shadows.card,
-  },
-  logoutIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
-    backgroundColor: colors.dangerSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  logoutInfo: {
-    flex: 1,
-  },
-  logoutTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  logoutSubtitle: {
-    marginTop: 2,
-    fontSize: 11.5,
-    color: colors.muted,
-  },
-  footer: {
-    marginTop: spacing.xl,
-    textAlign: 'center',
-    fontSize: 10.5,
-    color: colors.subtle,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xxl,
+    },
+    inner: {
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    hero: {
+      borderRadius: radius.xxl,
+      padding: spacing.xl,
+      overflow: 'hidden',
+      ...shadows.floating,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.45 } : null),
+    },
+    heroCircleLarge: {
+      position: 'absolute',
+      width: 210,
+      height: 210,
+      borderRadius: 105,
+      backgroundColor: 'rgba(255,255,255,0.10)',
+      top: -85,
+      right: -60,
+    },
+    heroCircleSmall: {
+      position: 'absolute',
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      bottom: -50,
+      left: -25,
+    },
+    heroTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    heroAvatar: {
+      marginRight: spacing.md,
+    },
+    heroText: {
+      flex: 1,
+    },
+    heroEyebrow: {
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: 'rgba(255,255,255,0.78)',
+      letterSpacing: 0.4,
+    },
+    heroName: {
+      marginTop: 2,
+      fontSize: 21,
+      fontWeight: '800',
+      color: '#ffffff',
+      letterSpacing: -0.4,
+    },
+    heroRole: {
+      marginTop: 1,
+      fontSize: 12,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.82)',
+    },
+    heroBell: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.18)',
+    },
+    heroBellDot: {
+      position: 'absolute',
+      top: 10,
+      right: 11,
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: '#fbbf24',
+      borderWidth: 1,
+      borderColor: '#0284c7',
+    },
+    datePill: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.lg,
+      paddingHorizontal: 11,
+      paddingVertical: 6,
+      borderRadius: radius.pill,
+      backgroundColor: 'rgba(255,255,255,0.16)',
+    },
+    datePillText: {
+      marginLeft: 6,
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: '#ffffff',
+    },
+    heroStats: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.lg,
+      paddingTop: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255,255,255,0.18)',
+    },
+    heroStat: {
+      flex: 1,
+    },
+    heroStatValue: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: '#ffffff',
+      letterSpacing: -0.5,
+    },
+    heroStatLabel: {
+      marginTop: 1,
+      fontSize: 11,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.78)',
+    },
+    heroDivider: {
+      width: 1,
+      height: 30,
+      backgroundColor: 'rgba(255,255,255,0.18)',
+      marginHorizontal: spacing.sm,
+    },
+    section: {
+      marginTop: spacing.xxl,
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: spacing.md,
+    },
+    quickCard: {
+      width: '48%',
+      minWidth: 140,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    quickCardPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.985 }],
+    },
+    quickIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.md,
+    },
+    quickTitle: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.2,
+    },
+    quickDescription: {
+      marginTop: 3,
+      fontSize: 11.5,
+      color: colors.muted,
+      paddingRight: spacing.lg,
+    },
+    quickArrow: {
+      position: 'absolute',
+      right: spacing.md,
+      bottom: spacing.md,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    appointmentCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    dateBlock: {
+      width: 56,
+      height: 62,
+      borderRadius: radius.md,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    dateDay: {
+      fontSize: 21,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+      lineHeight: 24,
+    },
+    dateMonth: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+      letterSpacing: 0.8,
+    },
+    appointmentInfo: {
+      flex: 1,
+    },
+    appointmentTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.sm,
+    },
+    appointmentPatient: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    appointmentReason: {
+      marginTop: 2,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    appointmentMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 7,
+    },
+    appointmentMetaText: {
+      marginLeft: 4,
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    metaDot: {
+      width: 3,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.borderStrong,
+      marginHorizontal: 7,
+    },
+    chevron: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: spacing.sm,
+    },
+    emptyCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    emptyIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    emptyTextWrap: {
+      flex: 1,
+    },
+    emptyTitle: {
+      fontSize: 14.5,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    emptyText: {
+      marginTop: 2,
+      fontSize: 12,
+      color: colors.muted,
+    },
+    emptyButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      backgroundColor: isDark ? colors.primary : colors.primaryDark,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    activityCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    activityRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+    },
+    activityRowBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    activityDot: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      backgroundColor: colors.purpleSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    activityInfo: {
+      flex: 1,
+      paddingRight: spacing.sm,
+    },
+    activityTitle: {
+      fontSize: 13.5,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    activitySubtitle: {
+      marginTop: 2,
+      fontSize: 11.5,
+      color: colors.muted,
+    },
+    logoutCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.xxl,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    logoutIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
+      backgroundColor: colors.dangerSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    logoutInfo: {
+      flex: 1,
+    },
+    logoutTitle: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    logoutSubtitle: {
+      marginTop: 2,
+      fontSize: 11.5,
+      color: colors.muted,
+    },
+    footer: {
+      marginTop: spacing.xl,
+      textAlign: 'center',
+      fontSize: 10.5,
+      color: colors.subtle,
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+  });
 
 export default HomeScreen;

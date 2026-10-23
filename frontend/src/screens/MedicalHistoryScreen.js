@@ -11,8 +11,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import EmptyState from '../components/EmptyState';
-import { colors, radius, shadows, spacing } from '../theme';
+import { radius, shadows, spacing } from '../theme';
 
 const getDayMonth = (isoDate) => {
   const [year, month, day] = isoDate.split('-').map(Number);
@@ -26,6 +27,11 @@ const getDayMonth = (isoDate) => {
 
 const MedicalHistoryScreen = ({ navigation }) => {
   const { records, patients, formatDate } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const [query, setQuery] = useState('');
   const [patientFilter, setPatientFilter] = useState('all');
 
@@ -63,6 +69,7 @@ const MedicalHistoryScreen = ({ navigation }) => {
       <FlatList
         data={visibleRecords}
         keyExtractor={(item) => item.id}
+        extraData={isDark}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
@@ -239,217 +246,225 @@ const MedicalHistoryScreen = ({ navigation }) => {
           pressed && styles.fabPressed,
         ]}
       >
-        <Ionicons name="add" size={28} color="#ffffff" />
+        <Ionicons
+          name="add"
+          size={28}
+          color={isDark ? '#1e1b4b' : '#ffffff'}
+        />
       </Pressable>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  list: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: 96,
-    width: '100%',
-    maxWidth: 760,
-    alignSelf: 'center',
-  },
-  summary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.lg,
-    ...shadows.card,
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.purple,
-  },
-  summaryLabel: {
-    marginTop: 2,
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: colors.border,
-  },
-  title: {
-    marginTop: spacing.xxl,
-    fontSize: 23,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.4,
-  },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    minHeight: 46,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    fontSize: 13.5,
-    color: colors.text,
-    paddingVertical: spacing.sm,
-  },
-  filters: {
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-  },
-  filter: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 7,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  filterActive: {
-    backgroundColor: colors.purple,
-    borderColor: colors.purple,
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.muted,
-  },
-  filterTextActive: {
-    color: '#ffffff',
-  },
-  listHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  listTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  listCount: {
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    ...shadows.card,
-  },
-  dateBlock: {
-    width: 54,
-    height: 60,
-    borderRadius: radius.md,
-    backgroundColor: colors.purpleSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  dateDay: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.purple,
-    lineHeight: 23,
-  },
-  dateMonth: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: colors.purple,
-    letterSpacing: 0.7,
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  diagnosis: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  patient: {
-    marginTop: 2,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  metaText: {
-    marginLeft: 4,
-    fontSize: 10.5,
-    color: colors.muted,
-    flexShrink: 1,
-  },
-  metaDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.borderStrong,
-    marginHorizontal: 6,
-  },
-  chevron: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.purpleSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.sm,
-  },
-  fab: {
-    position: 'absolute',
-    right: spacing.xl,
-    bottom: spacing.xl,
-    width: 56,
-    height: 56,
-    borderRadius: 19,
-    backgroundColor: colors.purple,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.floating,
-  },
-  fabPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.96 }],
-  },
-  pressed: {
-    opacity: 0.82,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    list: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+      paddingBottom: 96,
+      width: '100%',
+      maxWidth: 760,
+      alignSelf: 'center',
+    },
+    summary: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    summaryItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    summaryValue: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.purple,
+    },
+    summaryLabel: {
+      marginTop: 2,
+      fontSize: 10.5,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    summaryDivider: {
+      width: 1,
+      height: 30,
+      backgroundColor: colors.border,
+    },
+    title: {
+      marginTop: spacing.xxl,
+      fontSize: 23,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.4,
+    },
+    subtitle: {
+      marginTop: 4,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    searchWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.lg,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.md,
+      minHeight: 46,
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: spacing.sm,
+      fontSize: 13.5,
+      color: colors.text,
+      paddingVertical: spacing.sm,
+    },
+    filters: {
+      gap: spacing.sm,
+      paddingVertical: spacing.md,
+    },
+    filter: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: 7,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filterActive: {
+      backgroundColor: colors.purple,
+      borderColor: colors.purple,
+    },
+    filterText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.muted,
+    },
+    filterTextActive: {
+      color: isDark ? '#1e1b4b' : '#ffffff',
+    },
+    listHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.md,
+    },
+    listTitle: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    listCount: {
+      fontSize: 11.5,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    dateBlock: {
+      width: 54,
+      height: 60,
+      borderRadius: radius.md,
+      backgroundColor: colors.purpleSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    dateDay: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: colors.purple,
+      lineHeight: 23,
+    },
+    dateMonth: {
+      fontSize: 9.5,
+      fontWeight: '800',
+      color: colors.purple,
+      letterSpacing: 0.7,
+    },
+    cardInfo: {
+      flex: 1,
+    },
+    diagnosis: {
+      fontSize: 14.5,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    patient: {
+      marginTop: 2,
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 6,
+    },
+    metaText: {
+      marginLeft: 4,
+      fontSize: 10.5,
+      color: colors.muted,
+      flexShrink: 1,
+    },
+    metaDot: {
+      width: 3,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: colors.borderStrong,
+      marginHorizontal: 6,
+    },
+    chevron: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.purpleSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: spacing.sm,
+    },
+    fab: {
+      position: 'absolute',
+      right: spacing.xl,
+      bottom: spacing.xl,
+      width: 56,
+      height: 56,
+      borderRadius: 19,
+      backgroundColor: colors.purple,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...shadows.floating,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.45 } : null),
+    },
+    fabPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.96 }],
+    },
+    pressed: {
+      opacity: 0.82,
+    },
+  });
 
 export default MedicalHistoryScreen;

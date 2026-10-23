@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -11,14 +11,20 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import Avatar from '../components/Avatar';
 import { FormField } from '../components/FormField';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 const EditProfileScreen = ({ navigation }) => {
   const { user, updateUser } = useAuth();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const [nombreUsuario, setNombreUsuario] = useState(user?.nombreUsuario || '');
   const [email, setEmail] = useState(user?.email || '');
   const [telefono, setTelefono] = useState(user?.telefono || '');
@@ -118,63 +124,64 @@ const EditProfileScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 640,
-    alignSelf: 'center',
-  },
-  avatarCard: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
-    marginBottom: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  avatarName: {
-    marginTop: spacing.md,
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  avatarRole: {
-    marginTop: 2,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  roleNotice: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: spacing.md,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-  },
-  roleNoticeText: {
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: colors.primaryDeep,
-  },
-  card: {
-    paddingBottom: spacing.xs,
-  },
-  actions: {
-    marginTop: spacing.lg,
-  },
-  cancel: {
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 640,
+      alignSelf: 'center',
+    },
+    avatarCard: {
+      alignItems: 'center',
+      paddingVertical: spacing.xl,
+      marginBottom: spacing.lg,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    avatarName: {
+      marginTop: spacing.md,
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    avatarRole: {
+      marginTop: 2,
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    roleNotice: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      marginTop: spacing.md,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: radius.pill,
+      backgroundColor: colors.primarySoft,
+    },
+    roleNoticeText: {
+      fontSize: 10.5,
+      fontWeight: '600',
+      color: colors.primaryDeep,
+    },
+    card: {
+      paddingBottom: spacing.xs,
+    },
+    actions: {
+      marginTop: spacing.lg,
+    },
+    cancel: {
+      marginTop: spacing.xs,
+    },
+  });
 
 export default EditProfileScreen;

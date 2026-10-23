@@ -10,12 +10,18 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import Avatar from '../components/Avatar';
 import EmptyState from '../components/EmptyState';
-import { colors, radius, shadows, spacing } from '../theme';
+import { radius, shadows, spacing } from '../theme';
 
 const UserInterfaceScreen = ({ navigation }) => {
   const { patients } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const [query, setQuery] = useState('');
 
   const filteredPatients = useMemo(() => {
@@ -57,7 +63,7 @@ const UserInterfaceScreen = ({ navigation }) => {
               <Ionicons
                 name="pulse-outline"
                 size={11}
-                color={colors.primaryDark}
+                color={colors.primaryDeep}
               />
               <Text style={styles.conditionText} numberOfLines={1}>
                 {item.condicion}
@@ -74,7 +80,7 @@ const UserInterfaceScreen = ({ navigation }) => {
         <Ionicons
           name="chevron-forward"
           size={17}
-          color={colors.primaryDark}
+          color={colors.primaryDeep}
         />
       </View>
     </Pressable>
@@ -86,6 +92,7 @@ const UserInterfaceScreen = ({ navigation }) => {
         data={filteredPatients}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        extraData={isDark}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
@@ -168,182 +175,190 @@ const UserInterfaceScreen = ({ navigation }) => {
           pressed && styles.fabPressed,
         ]}
       >
-        <Ionicons name="add" size={28} color="#ffffff" />
+        <Ionicons
+          name="add"
+          size={28}
+          color={isDark ? '#082f49' : '#ffffff'}
+        />
       </Pressable>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  list: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: 96,
-    width: '100%',
-    maxWidth: 760,
-    alignSelf: 'center',
-  },
-  summary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.lg,
-    ...shadows.card,
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryValue: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-  },
-  summaryLabel: {
-    marginTop: 2,
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: colors.border,
-  },
-  title: {
-    marginTop: spacing.xxl,
-    fontSize: 23,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.4,
-  },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    minHeight: 46,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: spacing.sm,
-    fontSize: 13.5,
-    color: colors.text,
-    paddingVertical: spacing.sm,
-  },
-  listHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
-  },
-  listTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  listCount: {
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    ...shadows.card,
-  },
-  info: {
-    flex: 1,
-    marginLeft: spacing.md,
-    marginRight: spacing.sm,
-  },
-  name: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  meta: {
-    marginTop: 1,
-    fontSize: 11.5,
-    color: colors.muted,
-  },
-  tags: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: spacing.sm,
-  },
-  conditionTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-    maxWidth: '55%',
-  },
-  conditionText: {
-    fontSize: 9.5,
-    fontWeight: '700',
-    color: colors.primaryDeep,
-    flexShrink: 1,
-  },
-  tutor: {
-    flex: 1,
-    fontSize: 10,
-    color: colors.subtle,
-  },
-  chevron: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    right: spacing.xl,
-    bottom: spacing.xl,
-    width: 56,
-    height: 56,
-    borderRadius: 19,
-    backgroundColor: colors.primaryDark,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.floating,
-  },
-  fabPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.96 }],
-  },
-  pressed: {
-    opacity: 0.82,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    list: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+      paddingBottom: 96,
+      width: '100%',
+      maxWidth: 760,
+      alignSelf: 'center',
+    },
+    summary: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: spacing.lg,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    summaryItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    summaryValue: {
+      fontSize: 19,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+    },
+    summaryLabel: {
+      marginTop: 2,
+      fontSize: 10.5,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    summaryDivider: {
+      width: 1,
+      height: 30,
+      backgroundColor: colors.border,
+    },
+    title: {
+      marginTop: spacing.xxl,
+      fontSize: 23,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.4,
+    },
+    subtitle: {
+      marginTop: 4,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    searchWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.lg,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.md,
+      minHeight: 46,
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: spacing.sm,
+      fontSize: 13.5,
+      color: colors.text,
+      paddingVertical: spacing.sm,
+    },
+    listHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: spacing.xl,
+      marginBottom: spacing.md,
+    },
+    listTitle: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    listCount: {
+      fontSize: 11.5,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      ...shadows.card,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    info: {
+      flex: 1,
+      marginLeft: spacing.md,
+      marginRight: spacing.sm,
+    },
+    name: {
+      fontSize: 14.5,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    meta: {
+      marginTop: 1,
+      fontSize: 11.5,
+      color: colors.muted,
+    },
+    tags: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 6,
+      gap: spacing.sm,
+    },
+    conditionTag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: radius.pill,
+      backgroundColor: colors.primarySoft,
+      maxWidth: '55%',
+    },
+    conditionText: {
+      fontSize: 9.5,
+      fontWeight: '700',
+      color: colors.primaryDeep,
+      flexShrink: 1,
+    },
+    tutor: {
+      flex: 1,
+      fontSize: 10,
+      color: colors.subtle,
+    },
+    chevron: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    fab: {
+      position: 'absolute',
+      right: spacing.xl,
+      bottom: spacing.xl,
+      width: 56,
+      height: 56,
+      borderRadius: 19,
+      backgroundColor: isDark ? colors.primary : colors.primaryDark,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...shadows.floating,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.45 } : null),
+    },
+    fabPressed: {
+      opacity: 0.85,
+      transform: [{ scale: 0.96 }],
+    },
+    pressed: {
+      opacity: 0.82,
+    },
+  });
 
 export default UserInterfaceScreen;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,8 @@ import AppointmentsStack from './AppointmentsStack';
 import PatientsStack from './PatientsStack';
 import HistoryStack from './HistoryStack';
 import ProfileStack from './ProfileStack';
-import { colors, shadows } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { shadows, spacing } from '../theme';
 
 const Tab = createBottomTabNavigator();
 
@@ -27,7 +28,10 @@ const icons = {
  */
 const MainTabsNavigator = () => {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const bottomInset = Math.max(insets.bottom, 6);
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   return (
     <Tab.Navigator
@@ -90,32 +94,35 @@ const MainTabsNavigator = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: 7,
-    ...shadows.floating,
-  },
-  item: {
-    paddingVertical: 0,
-  },
-  label: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    letterSpacing: 0.1,
-  },
-  iconWrap: {
-    width: 38,
-    height: 30,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapActive: {
-    backgroundColor: colors.primarySoft,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    tabBar: {
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 7,
+      ...shadows.floating,
+      ...(isDark ? { shadowColor: '#000000', shadowOpacity: 0.35 } : null),
+    },
+    item: {
+      paddingVertical: 0,
+    },
+    label: {
+      fontSize: 10.5,
+      fontWeight: '700',
+      letterSpacing: 0.1,
+    },
+    iconWrap: {
+      width: 38,
+      height: 30,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.xs / 2,
+    },
+    iconWrapActive: {
+      backgroundColor: colors.primarySoft,
+    },
+  });
 
 export default MainTabsNavigator;

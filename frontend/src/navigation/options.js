@@ -1,12 +1,11 @@
 import React from 'react';
 import UserBadge from '../components/UserBadge';
-import { colors } from '../theme';
 
 /**
  * Opciones compartidas por todos los stacks autenticados.
- * Mantiene headers blancos, título centrado y el chip de usuario a la derecha.
+ * Recibe la paleta activa para que los headers respeten el modo oscuro.
  */
-export const commonHeaderOptions = {
+export const getCommonHeaderOptions = (colors) => ({
   headerTitleAlign: 'center',
   headerTintColor: colors.primaryDeep,
   headerTitleStyle: {
@@ -23,6 +22,6 @@ export const commonHeaderOptions = {
   contentStyle: {
     backgroundColor: colors.bg,
   },
-};
+});
 
-export default commonHeaderOptions;
+export default getCommonHeaderOptions;

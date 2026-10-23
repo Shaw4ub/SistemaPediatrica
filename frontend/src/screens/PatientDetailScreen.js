@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import Avatar from '../components/Avatar';
@@ -18,7 +19,7 @@ import EmptyState from '../components/EmptyState';
 import InfoRow from '../components/InfoRow';
 import SectionHeader from '../components/SectionHeader';
 import StatusBadge from '../components/StatusBadge';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 const confirmAction = (title, message, onConfirm) => {
   if (Platform.OS === 'web') {
@@ -44,6 +45,11 @@ const PatientDetailScreen = ({ navigation, route }) => {
     deletePatient,
     formatDate,
   } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const { patientId } = route.params || {};
   const patient = patients.find((item) => item.id === patientId);
 
@@ -347,217 +353,218 @@ const PatientDetailScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-  },
-  heroInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  name: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.3,
-  },
-  meta: {
-    marginTop: 2,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  heroTags: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  statusChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    backgroundColor: colors.successSoft,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.success,
-    marginRight: 5,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.success,
-  },
-  bloodChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    backgroundColor: colors.dangerSoft,
-  },
-  bloodText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.danger,
-  },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  action: {
-    flex: 1,
-  },
-  editButton: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionTitle: {
-    marginTop: spacing.xxl,
-    marginBottom: spacing.sm,
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  card: {
-    paddingVertical: spacing.xs,
-  },
-  notesCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  notesIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 11,
-    backgroundColor: colors.purpleSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  notesText: {
-    flex: 1,
-    fontSize: 13.5,
-    lineHeight: 20,
-    color: colors.textSecondary,
-  },
-  sectionHeader: {
-    marginTop: spacing.xxl,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  historyDate: {
-    width: 44,
-    height: 48,
-    borderRadius: radius.sm,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  historyDay: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.primaryDeep,
-    lineHeight: 18,
-  },
-  historyMonth: {
-    fontSize: 8.5,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    letterSpacing: 0.5,
-  },
-  historyInfo: {
-    flex: 1,
-    marginRight: spacing.sm,
-  },
-  historyTitle: {
-    fontSize: 13.5,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  historyMeta: {
-    marginTop: 2,
-    fontSize: 11,
-    color: colors.muted,
-  },
-  recordIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.purpleSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  emptyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  emptyText: {
-    marginLeft: spacing.sm,
-    fontSize: 12.5,
-    color: colors.muted,
-  },
-  deleteAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.xxl,
-    paddingVertical: spacing.sm,
-  },
-  deleteText: {
-    marginLeft: 5,
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.subtle,
-  },
-  pressed: {
-    opacity: 0.78,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    hero: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+    },
+    heroInfo: {
+      flex: 1,
+      marginLeft: spacing.md,
+    },
+    name: {
+      fontSize: 19,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.3,
+    },
+    meta: {
+      marginTop: 2,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    heroTags: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    statusChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 9,
+      paddingVertical: 4,
+      borderRadius: radius.pill,
+      backgroundColor: colors.successSoft,
+    },
+    statusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.success,
+      marginRight: 5,
+    },
+    statusText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.success,
+    },
+    bloodChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: radius.pill,
+      backgroundColor: colors.dangerSoft,
+    },
+    bloodText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.danger,
+    },
+    actions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+    },
+    action: {
+      flex: 1,
+    },
+    editButton: {
+      width: 38,
+      height: 38,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sectionTitle: {
+      marginTop: spacing.xxl,
+      marginBottom: spacing.sm,
+      fontSize: 14,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    card: {
+      paddingVertical: spacing.xs,
+    },
+    notesCard: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    notesIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      backgroundColor: colors.purpleSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    notesText: {
+      flex: 1,
+      fontSize: 13.5,
+      lineHeight: 20,
+      color: colors.textSecondary,
+    },
+    sectionHeader: {
+      marginTop: spacing.xxl,
+    },
+    historyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    historyDate: {
+      width: 44,
+      height: 48,
+      borderRadius: radius.sm,
+      backgroundColor: colors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    historyDay: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: colors.primaryDeep,
+      lineHeight: 18,
+    },
+    historyMonth: {
+      fontSize: 8.5,
+      fontWeight: '800',
+      color: colors.primaryDark,
+      letterSpacing: 0.5,
+    },
+    historyInfo: {
+      flex: 1,
+      marginRight: spacing.sm,
+    },
+    historyTitle: {
+      fontSize: 13.5,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    historyMeta: {
+      marginTop: 2,
+      fontSize: 11,
+      color: colors.muted,
+    },
+    recordIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: colors.purpleSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    emptyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: spacing.lg,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    emptyText: {
+      marginLeft: spacing.sm,
+      fontSize: 12.5,
+      color: colors.muted,
+    },
+    deleteAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: spacing.xxl,
+      paddingVertical: spacing.sm,
+    },
+    deleteText: {
+      marginLeft: 5,
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.subtle,
+    },
+    pressed: {
+      opacity: 0.78,
+    },
+  });
 
 export default PatientDetailScreen;

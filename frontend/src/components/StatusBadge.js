@@ -1,34 +1,42 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, radius } from '../theme';
 
-const statusMap = {
-  confirmada: {
-    label: 'Confirmada',
-    bg: colors.successSoft,
-    color: colors.success,
-  },
-  pendiente: {
-    label: 'Pendiente',
-    bg: colors.amberSoft,
-    color: '#b45309',
-  },
-  cancelada: {
-    label: 'Cancelada',
-    bg: colors.dangerSoft,
-    color: colors.danger,
-  },
-  completada: {
-    label: 'Completada',
-    bg: colors.primarySoft,
-    color: colors.primaryDeep,
-  },
-};
+import { useTheme } from '../context/ThemeContext';
+import { radius } from '../theme';
 
 /**
  * Insignia de estado de una cita u otro registro.
+ * Los colores se recalculan con el tema activo.
  */
 const StatusBadge = ({ status = 'pendiente', style }) => {
+  const { colors } = useTheme();
+
+  const statusMap = useMemo(
+    () => ({
+      confirmada: {
+        label: 'Confirmada',
+        bg: colors.successSoft,
+        color: colors.success,
+      },
+      pendiente: {
+        label: 'Pendiente',
+        bg: colors.amberSoft,
+        color: colors.amberText,
+      },
+      cancelada: {
+        label: 'Cancelada',
+        bg: colors.dangerSoft,
+        color: colors.danger,
+      },
+      completada: {
+        label: 'Completada',
+        bg: colors.primarySoft,
+        color: colors.primaryDeep,
+      },
+    }),
+    [colors]
+  );
+
   const config = statusMap[status] || statusMap.pendiente;
 
   return (

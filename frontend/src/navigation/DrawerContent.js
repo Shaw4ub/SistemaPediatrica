@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -13,15 +13,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import Avatar from '../components/Avatar';
 import {
-  colors,
+  darkDrawerGradient,
   drawerGradient,
   radius,
   spacing,
 } from '../theme';
 
-const MenuItem = ({ icon, label, active, onPress, badge }) => (
+const MenuItem = ({ icon, label, active, onPress, badge, styles, colors }) => (
   <Pressable
     accessibilityRole="button"
     accessibilityState={{ selected: active }}
@@ -59,6 +60,11 @@ const MenuItem = ({ icon, label, active, onPress, badge }) => (
 const DrawerContent = (props) => {
   const { user, logout } = useAuth();
   const { patients, appointments } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
 
   const drawerRoute = props.state.routeNames[props.state.index];
   const tabsRoute = props.state.routes.find((route) => route.name === 'Tabs');
@@ -93,9 +99,13 @@ const DrawerContent = (props) => {
   return (
     <DrawerContentScrollView
       {...props}
+      style={{ backgroundColor: colors.surface }}
       contentContainerStyle={styles.scroll}
     >
-      <LinearGradient colors={drawerGradient} style={styles.header}>
+      <LinearGradient
+        colors={isDark ? darkDrawerGradient : drawerGradient}
+        style={styles.header}
+      >
         <View style={styles.circleOne} />
         <View style={styles.circleTwo} />
 
@@ -138,12 +148,16 @@ const DrawerContent = (props) => {
         label="Inicio"
         active={drawerRoute === 'Tabs' && activeTab === 'InicioTab'}
         onPress={() => goToTab('InicioTab')}
+        styles={styles}
+        colors={colors}
       />
       <MenuItem
         icon="person-outline"
         label="Mi perfil"
         active={drawerRoute === 'Tabs' && activeTab === 'PerfilTab'}
         onPress={() => goToTab('PerfilTab')}
+        styles={styles}
+        colors={colors}
       />
       <MenuItem
         icon="notifications-outline"
@@ -155,6 +169,8 @@ const DrawerContent = (props) => {
           tabsState?.routes?.[tabsState.index]?.state?.index === 1
         }
         onPress={() => goToTab('InicioTab', 'Notifications')}
+        styles={styles}
+        colors={colors}
       />
 
       <Text style={styles.sectionLabel}>Configuración</Text>
@@ -163,24 +179,32 @@ const DrawerContent = (props) => {
         label="Configuración"
         active={drawerRoute === 'Settings'}
         onPress={() => goToScreen('Settings')}
+        styles={styles}
+        colors={colors}
       />
       <MenuItem
         icon="lock-closed-outline"
         label="Cambiar contraseña"
         active={drawerRoute === 'ChangePassword'}
         onPress={() => goToScreen('ChangePassword')}
+        styles={styles}
+        colors={colors}
       />
       <MenuItem
         icon="help-circle-outline"
         label="Ayuda"
         active={drawerRoute === 'Help'}
         onPress={() => goToScreen('Help')}
+        styles={styles}
+        colors={colors}
       />
       <MenuItem
         icon="information-circle-outline"
         label="Acerca de la app"
         active={drawerRoute === 'About'}
         onPress={() => goToScreen('About')}
+        styles={styles}
+        colors={colors}
       />
 
       <View style={styles.spacer} />
@@ -204,200 +228,201 @@ const DrawerContent = (props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 1,
-    paddingBottom: spacing.lg,
-  },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxxl,
-    paddingBottom: spacing.xxl,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-    borderRadius: radius.xl,
-    overflow: 'hidden',
-  },
-  circleOne: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-    top: -60,
-    right: -40,
-  },
-  circleTwo: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    bottom: -40,
-    left: -20,
-  },
-  avatar: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    marginBottom: spacing.md,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.3,
-  },
-  role: {
-    marginTop: 3,
-    fontSize: 12.5,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.82)',
-  },
-  sessionChip: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.md,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#4ade80',
-    marginRight: 6,
-  },
-  sessionText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.md,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryValue: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  summaryLabel: {
-    marginTop: 1,
-    fontSize: 10.5,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  summaryDivider: {
-    width: 1,
-    height: 26,
-    backgroundColor: colors.border,
-  },
-  sectionLabel: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
-    marginHorizontal: spacing.xl,
-    fontSize: 10.5,
-    fontWeight: '800',
-    letterSpacing: 1.1,
-    textTransform: 'uppercase',
-    color: colors.subtle,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 11,
-    borderRadius: radius.md,
-  },
-  itemActive: {
-    backgroundColor: colors.primarySoft,
-  },
-  itemPressed: {
-    opacity: 0.72,
-  },
-  itemIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
-    marginRight: spacing.md,
-  },
-  itemIconActive: {
-    backgroundColor: '#ffffff',
-  },
-  itemLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  itemLabelActive: {
-    color: colors.primaryDeep,
-    fontWeight: '800',
-  },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    backgroundColor: colors.rose,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#ffffff',
-  },
-  spacer: {
-    flex: 1,
-    minHeight: spacing.lg,
-  },
-  logout: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.dangerSoft,
-  },
-  logoutIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    marginRight: spacing.md,
-  },
-  logoutText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.danger,
-  },
-  version: {
-    marginTop: spacing.md,
-    textAlign: 'center',
-    fontSize: 10.5,
-    color: colors.subtle,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    scroll: {
+      flexGrow: 1,
+      paddingBottom: spacing.lg,
+      backgroundColor: colors.surface,
+    },
+    header: {
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.xxxl,
+      paddingBottom: spacing.xxl,
+      marginHorizontal: spacing.md,
+      marginTop: spacing.sm,
+      borderRadius: radius.xl,
+      overflow: 'hidden',
+    },
+    circleOne: {
+      position: 'absolute',
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: 'rgba(255,255,255,0.10)',
+      top: -60,
+      right: -40,
+    },
+    circleTwo: {
+      position: 'absolute',
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      bottom: -40,
+      left: -20,
+    },
+    avatar: {
+      marginBottom: spacing.md,
+    },
+    name: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: '#ffffff',
+      letterSpacing: -0.3,
+    },
+    role: {
+      marginTop: 3,
+      fontSize: 12.5,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.82)',
+    },
+    sessionChip: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.md,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: radius.pill,
+      backgroundColor: 'rgba(255,255,255,0.18)',
+    },
+    dot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: '#4ade80',
+      marginRight: 6,
+    },
+    sessionText: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: '#ffffff',
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceMuted,
+      marginHorizontal: spacing.md,
+      marginTop: spacing.md,
+      paddingVertical: spacing.md,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    summaryItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    summaryValue: {
+      fontSize: 17,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    summaryLabel: {
+      marginTop: 1,
+      fontSize: 10.5,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    summaryDivider: {
+      width: 1,
+      height: 26,
+      backgroundColor: colors.border,
+    },
+    sectionLabel: {
+      marginTop: spacing.xl,
+      marginBottom: spacing.sm,
+      marginHorizontal: spacing.xl,
+      fontSize: 10.5,
+      fontWeight: '800',
+      letterSpacing: 1.1,
+      textTransform: 'uppercase',
+      color: colors.subtle,
+    },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 11,
+      borderRadius: radius.md,
+    },
+    itemActive: {
+      backgroundColor: colors.primarySoft,
+    },
+    itemPressed: {
+      opacity: 0.72,
+    },
+    itemIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surfaceMuted,
+      marginRight: spacing.md,
+    },
+    itemIconActive: {
+      backgroundColor: isDark ? colors.surface : '#ffffff',
+    },
+    itemLabel: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    itemLabelActive: {
+      color: colors.primaryDeep,
+      fontWeight: '800',
+    },
+    badge: {
+      minWidth: 20,
+      height: 20,
+      borderRadius: 10,
+      paddingHorizontal: 6,
+      backgroundColor: colors.rose,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeText: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    spacer: {
+      flex: 1,
+      minHeight: spacing.lg,
+    },
+    logout: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.dangerSoft,
+    },
+    logoutIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? colors.surface : '#ffffff',
+      marginRight: spacing.md,
+    },
+    logoutText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.danger,
+    },
+    version: {
+      marginTop: spacing.md,
+      textAlign: 'center',
+      fontSize: 10.5,
+      color: colors.subtle,
+    },
+  });
 
 export default DrawerContent;

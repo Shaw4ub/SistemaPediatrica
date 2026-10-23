@@ -11,10 +11,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import AppButton from '../components/AppButton';
 import AppCard from '../components/AppCard';
 import { FormField, ChipSelect } from '../components/FormField';
-import { colors, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 const isValidDate = (value) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -24,6 +25,11 @@ const isValidDate = (value) => {
 
 const MedicalRecordFormScreen = ({ navigation, route }) => {
   const { patients, records, addRecord, updateRecord, todayISO } = useClinic();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
   const { recordId, patientId } = route.params || {};
   const editing = useMemo(
     () => records.find((record) => record.id === recordId),
@@ -202,57 +208,58 @@ const MedicalRecordFormScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxxl,
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-  },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.purpleSoft,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  bannerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 13,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  bannerText: {
-    flex: 1,
-  },
-  bannerTitle: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    color: colors.purple,
-  },
-  bannerSubtitle: {
-    marginTop: 2,
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  card: {
-    paddingBottom: spacing.xs,
-  },
-  actions: {
-    marginTop: spacing.lg,
-  },
-  cancel: {
-    marginTop: spacing.xs,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    content: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xxxl,
+      width: '100%',
+      maxWidth: 720,
+      alignSelf: 'center',
+    },
+    banner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.purpleSoft,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      marginBottom: spacing.lg,
+    },
+    bannerIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 13,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    bannerText: {
+      flex: 1,
+    },
+    bannerTitle: {
+      fontSize: 14.5,
+      fontWeight: '800',
+      color: colors.purple,
+    },
+    bannerSubtitle: {
+      marginTop: 2,
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    card: {
+      paddingBottom: spacing.xs,
+    },
+    actions: {
+      marginTop: spacing.lg,
+    },
+    cancel: {
+      marginTop: spacing.xs,
+    },
+  });
 
 export default MedicalRecordFormScreen;

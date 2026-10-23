@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, spacing } from '../theme';
 
-const variants = {
+import { useTheme } from '../context/ThemeContext';
+import { radius, spacing } from '../theme';
+
+/**
+ * Construye la paleta de cada variante a partir de los colores del tema.
+ * En modo oscuro el botón primario invierte el contraste para mantener
+ * legibilidad sobre el azul claro de la paleta oscura.
+ */
+const getVariants = (colors, isDark) => ({
   primary: {
-    backgroundColor: colors.primaryDark,
-    borderColor: colors.primaryDark,
-    textColor: '#ffffff',
-    iconColor: '#ffffff',
+    backgroundColor: isDark ? colors.primary : colors.primaryDark,
+    borderColor: isDark ? colors.primary : colors.primaryDark,
+    textColor: isDark ? '#082f49' : '#ffffff',
+    iconColor: isDark ? '#082f49' : '#ffffff',
   },
   soft: {
     backgroundColor: colors.primarySoft,
@@ -34,7 +41,7 @@ const variants = {
     textColor: colors.danger,
     iconColor: colors.danger,
   },
-};
+});
 
 /**
  * Botón reutilizable con variantes de color e ícono opcional.
@@ -52,6 +59,16 @@ const AppButton = ({
   style,
   textStyle,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark]
+  );
+  const variants = useMemo(
+    () => getVariants(colors, isDark),
+    [colors, isDark]
+  );
+
   const palette = variants[variant] || variants.primary;
   const isSmall = size === 'sm';
 
@@ -110,46 +127,47 @@ const AppButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 46,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  small: {
-    minHeight: 36,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.sm,
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  pressed: {
-    opacity: 0.82,
-    transform: [{ scale: 0.99 }],
-  },
-  text: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  textSmall: {
-    fontSize: 13,
-  },
-  leftIcon: {
-    marginRight: 8,
-  },
-  rightIcon: {
-    marginLeft: 8,
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    base: {
+      minHeight: 46,
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.md,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    small: {
+      minHeight: 36,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.sm,
+    },
+    fullWidth: {
+      width: '100%',
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    pressed: {
+      opacity: 0.82,
+      transform: [{ scale: 0.99 }],
+    },
+    text: {
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    textSmall: {
+      fontSize: 13,
+    },
+    leftIcon: {
+      marginRight: 8,
+    },
+    rightIcon: {
+      marginLeft: 8,
+    },
+  });
 
 export default AppButton;

@@ -7,7 +7,8 @@ import {
   PatientFormScreen,
 } from '../screens';
 import DrawerMenuButton from '../components/DrawerMenuButton';
-import { commonHeaderOptions } from './options';
+import { useTheme } from '../context/ThemeContext';
+import { getCommonHeaderOptions } from './options';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,31 +16,35 @@ const Stack = createNativeStackNavigator();
  * Flujo jerárquico de pacientes:
  * listado → expediente → formulario (crear/editar).
  */
-const PatientsStack = () => (
-  <Stack.Navigator screenOptions={commonHeaderOptions}>
-    <Stack.Screen
-      name="PatientsHome"
-      component={UserInterfaceScreen}
-      options={{
-        title: 'Pacientes',
-        headerLeft: () => <DrawerMenuButton />,
-      }}
-    />
-    <Stack.Screen
-      name="PatientDetail"
-      component={PatientDetailScreen}
-      options={{ title: 'Expediente del paciente' }}
-    />
-    <Stack.Screen
-      name="PatientForm"
-      component={PatientFormScreen}
-      options={({ route }) => ({
-        title: route.params?.patientId ? 'Editar paciente' : 'Nuevo paciente',
-        presentation: 'modal',
-        animation: 'slide_from_bottom',
-      })}
-    />
-  </Stack.Navigator>
-);
+const PatientsStack = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator screenOptions={getCommonHeaderOptions(colors)}>
+      <Stack.Screen
+        name="PatientsHome"
+        component={UserInterfaceScreen}
+        options={{
+          title: 'Pacientes',
+          headerLeft: () => <DrawerMenuButton />,
+        }}
+      />
+      <Stack.Screen
+        name="PatientDetail"
+        component={PatientDetailScreen}
+        options={{ title: 'Expediente del paciente' }}
+      />
+      <Stack.Screen
+        name="PatientForm"
+        component={PatientFormScreen}
+        options={({ route }) => ({
+          title: route.params?.patientId ? 'Editar paciente' : 'Nuevo paciente',
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        })}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default PatientsStack;
