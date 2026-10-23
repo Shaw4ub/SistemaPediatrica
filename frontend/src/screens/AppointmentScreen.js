@@ -1,299 +1,454 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   FlatList,
-  Modal,
+  Pressable,
+  ScrollView,
   StyleSheet,
-  Alert,
+  Text,
+  View,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
-const AppointmentScreen = ({ route }) => {
-  const { user } = useAuth();
-  const [appointments, setAppointments] = useState([
-    {
-      id: '1',
-      fecha: '2024-08-01',
-      hora: '10:00 AM',
-      paciente: 'Juan Pérez',
-      motivo: 'Revisión general',
-    },
-    {
-      id: '2',
-      fecha: '2024-08-03',
-      hora: '11:00 AM',
-      paciente: 'Ana García',
-      motivo: 'Consulta de seguimiento',
-    },
-  ]);
+import { useClinic } from '../context/ClinicContext';
+import EmptyState from '../components/EmptyState';
+import StatusBadge from '../components/StatusBadge';
+import { colors, radius, shadows, spacing } from '../theme';
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [fecha, setFecha] = useState('');
-  const [hora, setHora] = useState('');
-  const [paciente, setPaciente] = useState('');
-  const [motivo, setMotivo] = useState('');
+const filters = [
+  { key: 'proximas', label: 'Próximas' },
+  { key: 'hoy', label: 'Hoy' },
+  { key: 'pasadas', label: 'Pasadas' },
+  { key: 'todas', label: 'Todas' },
+];
 
-  const handleAddAppointment = () => {
-    if (!fecha.trim() || !hora.trim() || !paciente.trim() || !motivo.trim()) {
-      Alert.alert('Error', 'Por favor complete todos los campos.');
-      return;
-    }
+const getDayMonth = (isoDate) => {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  const monthLabel = new Intl.DateTimeFormat('es-ES', { month: 'short' })
+    .format(date)
+    .replace('.', '');
 
-    const newAppointment = {
-      id: Date.now().toString(),
-      fecha: fecha.trim(),
-      hora: hora.trim(),
-      paciente: paciente.trim(),
-      motivo: motivo.trim(),
-    };
+  return { day, monthLabel: monthLabel.toUpperCase() };
+};
 
-    setAppointments([...appointments, newAppointment]);
-    setFecha('');
-    setHora('');
-    setPaciente('');
-    setMotivo('');
-    setModalVisible(false);
-  };
+const AppointmentScreen = ({ navigation }) => {
+  const { appointments, todayISO, formatDate } = useClinic();
+  const [activeFilter, setActiveFilter] = useState('proximas');
 
-  const handleCancel = () => {
-    setFecha('');
-    setHora('');
-    setPaciente('');
-    setMotivo('');
-    setModalVisible(false);
+  const today = todayISO();
+
+  const visibleAppointments = useMemo(() => {
+    const list = appointments.filter((appointment) => {
+      if (activeFilter === 'hoy') return appointment.fecha === today;
+      if (activeFilter === 'proximas') return appointment.fecha >= today;
+      if (activeFilter === 'pasadas') return appointment.fecha < today;
+      return true;
+    });
+
+    return [...list].sort((a, b) => {
+      const comparison =
+        a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora);
+      return activeFilter === 'pasadas' || activeFilter === 'todas'
+        ? -comparison
+        : comparison;
+    });
+  }, [appointments, activeFilter, today]);
+
+  const todayCount = appointments.filter(
+    (appointment) => appointment.fecha === today
+  ).length;
+  const pendingCount = appointments.filter(
+    (appointment) => appointment.estado === 'pendiente'
+  ).length;
+
+  const renderItem = ({ item }) => {
+    const date = getDayMonth(item.fecha);
+
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          navigation.navigate('AppointmentDetail', {
+            appointmentId: item.id,
+          })
+        }
+        style={({ pressed }) => [
+          styles.card,
+          item.estado === 'cancelada' && styles.cardCancelled,
+          pressed && styles.pressed,
+        ]}
+      >
+        <View style={styles.dateBlock}>
+          <Text style={styles.dateDay}>{date.day}</Text>
+          <Text style={styles.dateMonth}>{date.monthLabel}</Text>
+        </View>
+
+        <View style={styles.cardInfo}>
+          <View style={styles.cardTop}>
+            <Text style={styles.patient} numberOfLines={1}>
+              {item.paciente}
+            </Text>
+            <StatusBadge status={item.estado} />
+          </View>
+          <Text style={styles.reason} numberOfLines={1}>
+            {item.motivo}
+          </Text>
+          <View style={styles.metaRow}>
+            <Ionicons name="time-outline" size={13} color={colors.muted} />
+            <Text style={styles.metaText}>{item.hora}</Text>
+            <View style={styles.metaDot} />
+            <Ionicons
+              name="medkit-outline"
+              size={13}
+              color={colors.muted}
+            />
+            <Text style={styles.metaText} numberOfLines={1}>
+              {item.medico}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.chevron}>
+          <Ionicons
+            name="chevron-forward"
+            size={17}
+            color={colors.primaryDark}
+          />
+        </View>
+      </Pressable>
+    );
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Citas Programadas</Text>
-
-      <Text style={styles.sessionText}>
-        Usuario en sesión: {user?.nombreUsuario}
-      </Text>
-      {route.params?.desde && (
-        <Text style={styles.paramText}>
-          Accedido desde: {route.params.desde}
-        </Text>
-      )}
-
+    <View style={styles.screen}>
       <FlatList
-        data={appointments}
+        data={visibleAppointments}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardText}>
-              <Text style={styles.boldText}>Fecha: </Text>
-              {item.fecha}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View>
+            <View style={styles.summary}>
+              <View style={styles.summaryItem}>
+                <View style={[styles.summaryIcon, styles.summaryIconBlue]}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={18}
+                    color={colors.primaryDark}
+                  />
+                </View>
+                <Text style={styles.summaryValue}>{todayCount}</Text>
+                <Text style={styles.summaryLabel}>Hoy</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <View style={[styles.summaryIcon, styles.summaryIconAmber]}>
+                  <Ionicons
+                    name="hourglass-outline"
+                    size={18}
+                    color="#b45309"
+                  />
+                </View>
+                <Text style={styles.summaryValue}>{pendingCount}</Text>
+                <Text style={styles.summaryLabel}>Pendientes</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <View style={[styles.summaryIcon, styles.summaryIconTeal]}>
+                  <Ionicons
+                    name="checkmark-done-outline"
+                    size={18}
+                    color={colors.success}
+                  />
+                </View>
+                <Text style={styles.summaryValue}>{appointments.length}</Text>
+                <Text style={styles.summaryLabel}>Totales</Text>
+              </View>
+            </View>
+
+            <Text style={styles.title}>Agenda de citas</Text>
+            <Text style={styles.subtitle}>
+              Organiza y da seguimiento a cada consulta
             </Text>
-            <Text style={styles.cardText}>
-              <Text style={styles.boldText}>Hora: </Text>
-              {item.hora}
-            </Text>
-            <Text style={styles.cardText}>
-              <Text style={styles.boldText}>Paciente: </Text>
-              {item.paciente}
-            </Text>
-            <Text style={styles.cardText}>
-              <Text style={styles.boldText}>Motivo: </Text>
-              {item.motivo}
-            </Text>
-          </View>
-        )}
-      />
 
-      <TouchableOpacity
-        style={styles.newButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text style={styles.newButtonText}>Nueva Cita</Text>
-      </TouchableOpacity>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filters}
+            >
+              {filters.map((filter) => {
+                const active = activeFilter === filter.key;
 
-      {/* Modal para Agregar Nueva Cita */}
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCancel}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Agregar Nueva Cita</Text>
+                return (
+                  <Pressable
+                    key={filter.key}
+                    onPress={() => setActiveFilter(filter.key)}
+                    style={({ pressed }) => [
+                      styles.filter,
+                      active && styles.filterActive,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.filterText,
+                        active && styles.filterTextActive,
+                      ]}
+                    >
+                      {filter.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Fecha (YYYY-MM-DD)"
-              placeholderTextColor="#999"
-              value={fecha}
-              onChangeText={setFecha}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Hora (HH:MM AM/PM)"
-              placeholderTextColor="#999"
-              value={hora}
-              onChangeText={setHora}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Paciente"
-              placeholderTextColor="#999"
-              value={paciente}
-              onChangeText={setPaciente}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Motivo"
-              placeholderTextColor="#999"
-              value={motivo}
-              onChangeText={setMotivo}
-            />
-
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalAddButton]}
-                onPress={handleAddAppointment}
-              >
-                <Text style={styles.modalButtonText}>Agregar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalCancelButton]}
-                onPress={handleCancel}
-              >
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
+            <View style={styles.listHeader}>
+              <Text style={styles.listTitle}>Citas programadas</Text>
+              <Text style={styles.listCount}>
+                {visibleAppointments.length}{' '}
+                {visibleAppointments.length === 1 ? 'resultado' : 'resultados'}
+              </Text>
             </View>
           </View>
-        </View>
-      </Modal>
+        }
+        ListEmptyComponent={
+          <EmptyState
+            icon="calendar-clear-outline"
+            title="No hay citas en esta vista"
+            message="Cambia el filtro o programa una nueva cita para comenzar."
+          />
+        }
+      />
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Nueva cita"
+        onPress={() => navigation.navigate('AppointmentForm', {})}
+        style={({ pressed }) => [
+          styles.fab,
+          pressed && styles.fabPressed,
+        ]}
+      >
+        <Ionicons name="add" size={28} color="#ffffff" />
+      </Pressable>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-    paddingTop: 30,
+    backgroundColor: colors.bg,
   },
-  sessionText: {
-    fontSize: 13,
-    color: '#0369a1',
+  list: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: 96,
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
+  },
+  summary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    ...shadows.card,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  summaryIconBlue: {
+    backgroundColor: colors.primarySoft,
+  },
+  summaryIconAmber: {
+    backgroundColor: colors.amberSoft,
+  },
+  summaryIconTeal: {
+    backgroundColor: colors.accentSoft,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  summaryLabel: {
+    marginTop: 1,
+    fontSize: 10.5,
     fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
+    color: colors.muted,
   },
-  paramText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginBottom: 12,
+  summaryDivider: {
+    width: 1,
+    height: 48,
+    backgroundColor: colors.border,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-    textAlign: 'center',
+    marginTop: spacing.xxl,
+    fontSize: 23,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.4,
   },
-  listContainer: {
-    paddingBottom: 20,
+  subtitle: {
+    marginTop: 4,
+    fontSize: 12.5,
+    color: colors.muted,
   },
-  card: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
+  filters: {
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+  },
+  filter: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
   },
-  cardText: {
-    fontSize: 14,
-    color: '#475569',
-    marginBottom: 4,
+  filterActive: {
+    backgroundColor: colors.primaryDark,
+    borderColor: colors.primaryDark,
   },
-  boldText: {
-    fontWeight: 'bold',
-    color: '#1e293b',
+  filterText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: colors.muted,
   },
-  newButton: {
-    backgroundColor: '#6200ea',
-    paddingVertical: 14,
-    borderRadius: 8,
+  filterTextActive: {
+    color: '#ffffff',
+  },
+  listHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 10,
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
-  newButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  listTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  listCount: {
+    fontSize: 11.5,
+    color: colors.muted,
     fontWeight: '600',
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    width: '90%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-    color: '#333',
-  },
-  input: {
-    height: 42,
-    borderColor: '#6200ea',
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    fontSize: 14,
-    backgroundColor: '#f9f9f9',
-  },
-  modalButtonContainer: {
+  card: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    gap: 10,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 6,
     alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    ...shadows.card,
   },
-  modalAddButton: {
-    backgroundColor: '#6200ea',
+  cardCancelled: {
+    opacity: 0.6,
   },
-  modalCancelButton: {
-    backgroundColor: '#7c4dff',
+  dateBlock: {
+    width: 54,
+    height: 60,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
   },
-  modalButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+  dateDay: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.primaryDeep,
+    lineHeight: 23,
+  },
+  dateMonth: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: colors.primaryDark,
+    letterSpacing: 0.7,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  patient: {
+    flex: 1,
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  reason: {
+    marginTop: 2,
+    fontSize: 12,
+    color: colors.muted,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 7,
+  },
+  metaText: {
+    marginLeft: 4,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.muted,
+    flexShrink: 1,
+  },
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.borderStrong,
+    marginHorizontal: 7,
+  },
+  chevron: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.sm,
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing.xl,
+    bottom: spacing.xl,
+    width: 56,
+    height: 56,
+    borderRadius: 19,
+    backgroundColor: colors.primaryDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.floating,
+  },
+  fabPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.96 }],
+  },
+  pressed: {
+    opacity: 0.8,
   },
 });
 

@@ -7,6 +7,7 @@ node_modules/
 .expo/
 dist/
 web-build/
+dist-check/
 expo-env.d.ts
 
 # Native
@@ -39,3 +40,11 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# documentación local (no se sube al repositorio)
+RESUMEN_TECNICO.md
+
+# variables de entorno
+.env
+.env.*
+!.env.example

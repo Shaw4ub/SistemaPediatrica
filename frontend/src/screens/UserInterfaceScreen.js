@@ -1,255 +1,348 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View,
+  FlatList,
+  Pressable,
+  StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  FlatList,
-  Alert,
+  View,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
-const UserInterfaceScreen = ({ route }) => {
-  const { user } = useAuth();
-  const [inputText, setInputText] = useState('');
-  const [patients, setPatients] = useState([
-    { id: '1', name: 'Gilbert García' },
-  ]);
-  const [editingId, setEditingId] = useState(null);
+import { useClinic } from '../context/ClinicContext';
+import Avatar from '../components/Avatar';
+import EmptyState from '../components/EmptyState';
+import { colors, radius, shadows, spacing } from '../theme';
 
-  const addPatient = () => {
-    if (!inputText.trim()) {
-      Alert.alert('Aviso', 'Por favor ingresa un nombre para el paciente.');
-      return;
-    }
+const UserInterfaceScreen = ({ navigation }) => {
+  const { patients } = useClinic();
+  const [query, setQuery] = useState('');
 
-    if (editingId) {
-      setPatients(
-        patients.map((item) =>
-          item.id === editingId ? { ...item, name: inputText.trim() } : item
-        )
-      );
-      setEditingId(null);
-    } else {
-      setPatients([
-        ...patients,
-        { id: Date.now().toString(), name: inputText.trim() },
-      ]);
-    }
-    setInputText('');
-  };
+  const filteredPatients = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return patients;
 
-  const handleEdit = (patient) => {
-    setInputText(patient.name);
-    setEditingId(patient.id);
-  };
+    return patients.filter(
+      (patient) =>
+        patient.nombre.toLowerCase().includes(term) ||
+        patient.tutor?.toLowerCase().includes(term) ||
+        patient.condicion?.toLowerCase().includes(term)
+    );
+  }, [patients, query]);
 
-  const handleDelete = (id) => {
-    setPatients(patients.filter((item) => item.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setInputText('');
-    }
-  };
+  const withCondition = patients.filter(
+    (patient) => patient.condicion && patient.condicion !== 'Ninguna'
+  ).length;
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setInputText('');
-  };
+  const renderItem = ({ item }) => (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() =>
+        navigation.navigate('PatientDetail', { patientId: item.id })
+      }
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
+      <Avatar name={item.nombre} size={50} />
+
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={1}>
+          {item.nombre}
+        </Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          {item.edad} años · {item.sexo}
+        </Text>
+        <View style={styles.tags}>
+          {item.condicion ? (
+            <View style={styles.conditionTag}>
+              <Ionicons
+                name="pulse-outline"
+                size={11}
+                color={colors.primaryDark}
+              />
+              <Text style={styles.conditionText} numberOfLines={1}>
+                {item.condicion}
+              </Text>
+            </View>
+          ) : null}
+          <Text style={styles.tutor} numberOfLines={1}>
+            Tutor: {item.tutor}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.chevron}>
+        <Ionicons
+          name="chevron-forward"
+          size={17}
+          color={colors.primaryDark}
+        />
+      </View>
+    </Pressable>
+  );
 
   return (
-    <View style={styles.screenWrapper}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Gestión de Pacientes</Text>
-
-        <Text style={styles.sessionText}>
-          Usuario en sesión: {user?.nombreUsuario}
-        </Text>
-        {route.params?.desde && (
-          <Text style={styles.paramText}>
-            Accedido desde: {route.params.desde}
-          </Text>
-        )}
-
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre del paciente"
-          placeholderTextColor="#999"
-          value={inputText}
-          onChangeText={setInputText}
-        />
-
-        <View style={styles.actionButtonsRow}>
-          <TouchableOpacity style={styles.addButton} onPress={addPatient}>
-            <Text style={styles.addButtonText}>
-              {editingId ? 'Actualizar Paciente' : 'Agregar Paciente'}
-            </Text>
-          </TouchableOpacity>
-
-          {editingId && (
-            <TouchableOpacity
-              style={styles.cancelEditButton}
-              onPress={handleCancelEdit}
-            >
-              <Text style={styles.cancelEditText}>Cancelar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <Text style={styles.counterText}>
-          Pacientes registrados: {patients.length}
-        </Text>
-
-        <FlatList
-          data={patients}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          style={styles.list}
-          renderItem={({ item }) => (
-            <View style={styles.itemContainer}>
-              <Text style={styles.itemText}>{item.name}</Text>
-              <View style={styles.itemActions}>
-                <TouchableOpacity
-                  style={styles.itemEditButton}
-                  onPress={() => handleEdit(item)}
-                >
-                  <Text style={styles.itemButtonText}>Editar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.itemDeleteButton}
-                  onPress={() => handleDelete(item.id)}
-                >
-                  <Text style={styles.itemButtonText}>Eliminar</Text>
-                </TouchableOpacity>
+    <View style={styles.screen}>
+      <FlatList
+        data={filteredPatients}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View>
+            <View style={styles.summary}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryValue}>{patients.length}</Text>
+                <Text style={styles.summaryLabel}>Pacientes</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryValue}>{withCondition}</Text>
+                <Text style={styles.summaryLabel}>En seguimiento</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryValue}>100%</Text>
+                <Text style={styles.summaryLabel}>Expedientes</Text>
               </View>
             </View>
-          )}
-        />
-      </ScrollView>
+
+            <Text style={styles.title}>Directorio de pacientes</Text>
+            <Text style={styles.subtitle}>
+              Consulta y actualiza cada expediente
+            </Text>
+
+            <View style={styles.searchWrap}>
+              <Ionicons name="search" size={18} color={colors.muted} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar por nombre, tutor o condición"
+                placeholderTextColor={colors.subtle}
+                value={query}
+                onChangeText={setQuery}
+              />
+              {query ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Limpiar búsqueda"
+                  hitSlop={8}
+                  onPress={() => setQuery('')}
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color={colors.subtle}
+                  />
+                </Pressable>
+              ) : null}
+            </View>
+
+            <View style={styles.listHeader}>
+              <Text style={styles.listTitle}>Expedientes</Text>
+              <Text style={styles.listCount}>
+                {filteredPatients.length}{' '}
+                {filteredPatients.length === 1 ? 'paciente' : 'pacientes'}
+              </Text>
+            </View>
+          </View>
+        }
+        ListEmptyComponent={
+          <EmptyState
+            icon="people-outline"
+            title="No se encontraron pacientes"
+            message={
+              query
+                ? 'Prueba con otro nombre o limpia la búsqueda.'
+                : 'Registra tu primer paciente para comenzar.'
+            }
+          />
+        }
+      />
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Nuevo paciente"
+        onPress={() => navigation.navigate('PatientForm', {})}
+        style={({ pressed }) => [
+          styles.fab,
+          pressed && styles.fabPressed,
+        ]}
+      >
+        <Ionicons name="add" size={28} color="#ffffff" />
+      </Pressable>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  screenWrapper: {
+  screen: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  sessionText: {
-    fontSize: 13,
-    color: '#0369a1',
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  paramText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 30,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#0077b6',
-  },
-  input: {
-    height: 44,
-    borderColor: '#90e0ef',
-    borderWidth: 1.5,
-    borderRadius: 6,
-    marginBottom: 15,
-    paddingHorizontal: 12,
-    width: '100%',
-    backgroundColor: '#f8fafc',
-    fontSize: 15,
-  },
-  actionButtonsRow: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 15,
-  },
-  addButton: {
-    flex: 1,
-    backgroundColor: '#0077b6',
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  cancelEditButton: {
-    backgroundColor: '#6c757d',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  cancelEditText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  counterText: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 15,
-    alignSelf: 'center',
+    backgroundColor: colors.bg,
   },
   list: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: 96,
     width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
   },
-  itemContainer: {
-    padding: 12,
-    marginVertical: 6,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
+  summary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    width: '100%',
+    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    ...shadows.card,
+  },
+  summaryItem: {
+    flex: 1,
     alignItems: 'center',
   },
-  itemText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 8,
+  summaryValue: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: colors.primaryDeep,
   },
-  itemActions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  itemEditButton: {
-    backgroundColor: '#f9a826',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  itemDeleteButton: {
-    backgroundColor: '#e63946',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  itemButtonText: {
-    color: '#fff',
-    fontSize: 12,
+  summaryLabel: {
+    marginTop: 2,
+    fontSize: 10.5,
     fontWeight: '600',
+    color: colors.muted,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: colors.border,
+  },
+  title: {
+    marginTop: spacing.xxl,
+    fontSize: 23,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.4,
+  },
+  subtitle: {
+    marginTop: 4,
+    fontSize: 12.5,
+    color: colors.muted,
+  },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    minHeight: 46,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: spacing.sm,
+    fontSize: 13.5,
+    color: colors.text,
+    paddingVertical: spacing.sm,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
+  },
+  listTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  listCount: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: colors.muted,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    ...shadows.card,
+  },
+  info: {
+    flex: 1,
+    marginLeft: spacing.md,
+    marginRight: spacing.sm,
+  },
+  name: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  meta: {
+    marginTop: 1,
+    fontSize: 11.5,
+    color: colors.muted,
+  },
+  tags: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: spacing.sm,
+  },
+  conditionTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
+    maxWidth: '55%',
+  },
+  conditionText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: colors.primaryDeep,
+    flexShrink: 1,
+  },
+  tutor: {
+    flex: 1,
+    fontSize: 10,
+    color: colors.subtle,
+  },
+  chevron: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing.xl,
+    bottom: spacing.xl,
+    width: 56,
+    height: 56,
+    borderRadius: 19,
+    backgroundColor: colors.primaryDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.floating,
+  },
+  fabPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.96 }],
+  },
+  pressed: {
+    opacity: 0.82,
   },
 });
 
