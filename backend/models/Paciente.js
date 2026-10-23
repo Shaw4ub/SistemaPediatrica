@@ -1,10 +1,10 @@
-const mogoose = require('mongoose');
+const mongoose = require('mongoose');
 
-const pacienteSchema = new mogoose.Schema({
+const pacienteSchema = new mongoose.Schema({
     nombre: {
         type: String,
         required: true,
     }
 });
 
-module.exports = mogoose.model('Paciente', pacienteSchema);
+module.exports = mongoose.model('Paciente', pacienteSchema);

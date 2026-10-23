@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -16,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { loginUser } from '../services/api';
 import {
   darkHeroGradient,
   heroGradient,
@@ -24,30 +26,84 @@ import {
   spacing,
 } from '../theme';
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation, route }) => {
   const { login } = useAuth();
   const { colors, isDark } = useTheme();
   const styles = useMemo(
     () => createStyles(colors, isDark),
     [colors, isDark]
   );
-  const [nombreUsuario, setNombreUsuario] = useState('');
+  const usuarioSugerido = route?.params?.nombreUsuario ?? '';
+  const [nombreUsuario, setNombreUsuario] = useState(usuarioSugerido);
   const [contraseña, setContraseña] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!nombreUsuario.trim() || !contraseña.trim()) {
+  // Al volver de Register, el usuario recién creado llega por parámetros.
+  useEffect(() => {
+    if (usuarioSugerido) {
+      setNombreUsuario(usuarioSugerido);
+    }
+  }, [usuarioSugerido]);
+
+  const handleLogin = async () => {
+    const user = nombreUsuario.trim();
+    const pass = contraseña.trim();
+
+    if (!user || !pass) {
       Alert.alert('Aviso', 'Por favor ingresa usuario y contraseña');
       return;
     }
 
-    // Simulación de inicio de sesión: el usuario se guarda en el contexto global.
-    login({
-      nombreUsuario: nombreUsuario.trim(),
-      rol: 'Administrador',
-      email: `${nombreUsuario.trim().toLowerCase()}@clinica.com`,
-      telefono: '+503 7000 0000',
-    });
+    try {
+      setIsLoading(true);
+      const res = await loginUser({ nombreUsuario: user, contrasena: pass });
+      login({
+        nombreUsuario: res.usuario?.nombreUsuario || user,
+        rol: res.usuario?.rol === 'admin' ? 'Administrador' : 'Usuario',
+        email: `${user.toLowerCase()}@clinica.com`,
+        telefono: '+503 7000 0000',
+      });
+    } catch (err) {
+      // Si el backend respondió que no coincide o no existe:
+      if (
+        err.message &&
+        (err.message.includes('inválidas') ||
+          err.message.includes('no encontrado') ||
+          err.message.includes('Credenciales'))
+      ) {
+        Alert.alert('Acceso denegado', err.message);
+        return;
+      }
+
+      // Si el backend no está corriendo, permitir entrar en modo demostración local
+      const enterDemo = () => {
+        login({
+          nombreUsuario: user,
+          rol: 'Administrador',
+          email: `${user.toLowerCase()}@clinica.com`,
+          telefono: '+503 7000 0000',
+        });
+      };
+
+      if (Platform.OS === 'web') {
+        const proceed = window.confirm(
+          `No se pudo conectar al servidor MongoDB (${err.message}).\n\n¿Deseas iniciar sesión en modo demostración local?`
+        );
+        if (proceed) enterDemo();
+      } else {
+        Alert.alert(
+          'Servidor no disponible',
+          `No se pudo conectar al backend MongoDB.\n\n¿Deseas entrar en modo demostración local?`,
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Entrar como Demo', onPress: enterDemo },
+          ]
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -144,19 +200,54 @@ const LoginScreen = () => {
 
               <Pressable
                 accessibilityRole="button"
+                disabled={isLoading}
                 onPress={handleLogin}
                 style={({ pressed }) => [
                   styles.button,
                   pressed && styles.buttonPressed,
+                  isLoading && styles.buttonDisabled,
                 ]}
               >
-                <Text style={styles.buttonText}>Iniciar sesión</Text>
+                {isLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={isDark ? '#082f49' : '#ffffff'}
+                  />
+                ) : (
+                  <>
+                    <Text style={styles.buttonText}>Iniciar sesión</Text>
+                    <Ionicons
+                      name="arrow-forward"
+                      size={18}
+                      color={isDark ? '#082f49' : '#ffffff'}
+                      style={styles.buttonIcon}
+                    />
+                  </>
+                )}
+              </Pressable>
+
+              <View style={styles.dividerRow}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>o</Text>
+                <View style={styles.divider} />
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Crear una cuenta"
+                onPress={() => navigation.navigate('Register')}
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  pressed && styles.buttonPressed,
+                ]}
+              >
                 <Ionicons
-                  name="arrow-forward"
+                  name="person-add-outline"
                   size={18}
-                  color={isDark ? '#082f49' : '#ffffff'}
-                  style={styles.buttonIcon}
+                  color={colors.primaryDeep}
+                  style={styles.secondaryIcon}
                 />
+                <Text style={styles.secondaryText}>Crear una cuenta</Text>
               </Pressable>
 
               <View style={styles.demoBox}>
@@ -311,6 +402,9 @@ const createStyles = (colors, isDark) =>
       opacity: 0.86,
       transform: [{ scale: 0.99 }],
     },
+    buttonDisabled: {
+      opacity: 0.65,
+    },
     buttonText: {
       fontSize: 15,
       fontWeight: '800',
@@ -318,6 +412,41 @@ const createStyles = (colors, isDark) =>
     },
     buttonIcon: {
       marginLeft: spacing.sm,
+    },
+    dividerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.lg,
+    },
+    divider: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      marginHorizontal: spacing.md,
+      fontSize: 11.5,
+      fontWeight: '700',
+      color: colors.subtle,
+    },
+    secondaryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      minHeight: 48,
+      marginTop: spacing.md,
+    },
+    secondaryIcon: {
+      marginRight: spacing.sm,
+    },
+    secondaryText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primaryDeep,
     },
     demoBox: {
       flexDirection: 'row',

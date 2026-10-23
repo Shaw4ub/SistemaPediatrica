@@ -7,13 +7,12 @@ const UsuarioSchema = new mongoose.Schema({
     rol: { type: String, required: true } // 'admin' o 'user'
 });
 
-UsuarioSchema.pre('save', async function (next) {
+UsuarioSchema.pre('save', async function () {
     if (!this.isModified('contraseña')) {
-        return next();
+        return;
     }
     const salt = await bcrypt.genSalt(10);
     this.contraseña = await bcrypt.hash(this.contraseña, salt);
-    next();
 });
 
 module.exports = mongoose.model('Usuario', UsuarioSchema);
